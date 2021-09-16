@@ -18,6 +18,10 @@
 #include "vsg/ReaderWriterSiegeNodeList.hpp"
 #include "vsg/ReaderWriterRegion.hpp"
 
+#include "ui_editor.h"
+
+//#include "QOSGWidget.hpp"
+
 namespace ehb
 {
     std::string vert_PushConstants = R"(#version 450
@@ -75,7 +79,7 @@ int main(int argc, char* argv[])
 
     auto windowTraits = vsg::WindowTraits::create();
     windowTraits->windowTitle = "Open Siege Editor";
-    windowTraits->debugLayer = true;
+    windowTraits->debugLayer = false;
     windowTraits->apiDumpLayer = false;
     windowTraits->width = 800;
     windowTraits->height = 600;
@@ -181,6 +185,7 @@ int main(int argc, char* argv[])
         // add trackball to enable mouse driven camera view control.
         viewer->addEventHandler(vsg::CloseHandler::create(viewer));
         viewer->addEventHandler(vsg::Trackball::create(camera));
+        viewer->addEventHandler(vsg::WindowResizeHandler::create());
 
         {
             static std::string siegeNode("t_grs01_houses_generic-a-log");
@@ -226,12 +231,17 @@ int main(int argc, char* argv[])
         return true;
     };
 
-    auto widget = QWidget::createWindowContainer(viewerWindow, mainWindow);
-    mainWindow->setCentralWidget(widget);
+    Ui_MainWindow w;
+    w.setupUi(mainWindow);
 
+    auto widget = QWidget::createWindowContainer(viewerWindow, mainWindow);
+    //mainWindow->setCentralWidget(widget);
+
+    mainWindow->setCentralWidget(widget);
     mainWindow->resize(windowTraits->width, windowTraits->height);
 
     mainWindow->show();
 
     return application.exec();
 }
+
