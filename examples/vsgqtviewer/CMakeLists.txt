@@ -1,3 +1,4 @@
+
 set(SOURCES
     main.cpp
     
@@ -17,19 +18,12 @@ set(SOURCES
     cfg/SteamConfig.cpp
     cfg/UserConfig.cpp
     cfg/WritableConfig.cpp
-    
-    #QOSGWidget.cpp
 )
 
 set(HEADERS
 )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-# automoc doens't even work
-#set(CMAKE_AUTOUIC OFF)
-#set(UI ${CMAKE_CURRENT_LIST_DIR}/editor.ui)
-#qt5_wrap_ui(UI_HEADERS ${UI})
 
 add_executable(vsgqtviewer ${SOURCES} ${UI_HEADERS} ${HEADERS} ${FORMS})
 
@@ -38,9 +32,9 @@ target_include_directories(vsgqtviewer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} extern
 target_link_libraries(vsgqtviewer vsgQt)
 
 if(MSVC)
-    target_compile_options(vsgqtviewer PRIVATE "/MP")
+    set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-    #source_group(TREE ${CMAKE_SOURCE_DIR}/src FILES ${SOURCES})
+    target_compile_options(vsgqtviewer PRIVATE "/MP")
 endif()
 
 

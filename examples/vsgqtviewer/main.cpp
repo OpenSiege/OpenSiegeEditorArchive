@@ -20,6 +20,8 @@
 
 #include "ui_editor.h"
 
+#include <QFileSystemModel>
+
 //#include "QOSGWidget.hpp"
 
 namespace ehb
@@ -241,6 +243,14 @@ int main(int argc, char* argv[])
     mainWindow->resize(windowTraits->width, windowTraits->height);
 
     mainWindow->show();
+
+    QFileSystemModel model;
+    model.setRootPath(config.getString("bits", "").c_str());
+    model.setOption(QFileSystemModel::DontWatchForChanges);
+    model.setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+
+    w.treeView->setModel(&model);
+    w.treeView->setRootIndex(model.index(config.getString("bits", "").c_str()));
 
     return application.exec();
 }
