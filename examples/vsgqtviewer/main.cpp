@@ -23,8 +23,7 @@
 #include <QFileSystemModel>
 #include <QModelIndex>
 #include <QFileInfo>
-
-//#include "QOSGWidget.hpp"
+#include <QInputDialog>
 
 namespace ehb
 {
@@ -221,19 +220,20 @@ int main(int argc, char* argv[])
             static std::string siegeNode("t_grs01_houses_generic-a-log");
             //static std::string siegeNode("t_xxx_flr_04x04-v0");
 
-            if (vsg::ref_ptr<vsg::Group> sno = vsg::read("t_grs01_houses_generic-a-log", state.siege_options).cast<vsg::Group>(); sno != nullptr)
+            //if (vsg::ref_ptr<vsg::Group> sno = vsg::read("t_grs01_houses_generic-a-log", state.siege_options).cast<vsg::Group>(); sno != nullptr)
+            if (auto sno= vsg::read("world/maps/multiplayer_world/regions/town_center.region", state.siege_options).cast<vsg::MatrixTransform>())
             {
                 auto t1 = vsg::MatrixTransform::create();
                 t1->addChild(sno);
 
                 auto t2 = vsg::MatrixTransform::create();
-                t2->addChild(sno);
+                //t2->addChild(sno);
 
                 // add nodes below the binding pipeline
                 state.vsg_sno->addChild(t1);
                 //vsg_sno->addChild(t2);
 
-                SiegeNodeMesh::connect(t1, 2, t2, 1);
+                //SiegeNodeMesh::connect(t1, 2, t2, 1);
             }
         }
 
@@ -276,6 +276,9 @@ int main(int argc, char* argv[])
     Ui_MainWindow w;
     w.setupUi(mainWindow);
 
+    bool ok;
+    QString bitsDir = QInputDialog::getText(mainWindow, "Bits directory pathing", "Path", QLineEdit::Normal, config.getString("bits", "").c_str(), &ok);
+
     auto widget = QWidget::createWindowContainer(viewerWindow, mainWindow);
 
     mainWindow->setCentralWidget(widget);
@@ -286,7 +289,7 @@ int main(int argc, char* argv[])
     QFileSystemModel model;
     model.setRootPath(config.getString("bits", "").c_str());
     model.setOption(QFileSystemModel::DontWatchForChanges);
-    model.setFilter(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
+    model.setFilter(QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs);
 
     w.treeView->setModel(&model);
     w.treeView->setRootIndex(model.index(config.getString("bits", "").c_str()));
@@ -297,7 +300,7 @@ int main(int argc, char* argv[])
     QStringList filters;
     filters << "*.sno";
 
-    //model.setNameFilters(filters);
+    model.setNameFilters(filters);
 
     QObject::connect(w.treeView->selectionModel(), &QItemSelectionModel::currentChanged, currentChanged);
 
