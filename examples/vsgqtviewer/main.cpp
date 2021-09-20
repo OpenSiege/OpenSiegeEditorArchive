@@ -21,11 +21,35 @@
 #include "ui_editor.h"
 
 #include <QFileSystemModel>
+#include <QModelIndex>
+#include <QFileInfo>
 
 //#include "QOSGWidget.hpp"
 
 namespace ehb
 {
+    struct RenderingState
+    {
+        // need options to make sure we can call properly loading of rendering objects
+        vsg::ref_ptr<vsg::Options> siege_options = vsg::Options::create();
+
+        // top of the graph that contains the binding pipeline
+        vsg::ref_ptr<vsg::Group> vsg_scene = vsg::Group::create();
+
+        // contains our siege nodes, you can pop children off this guy and add to it to render nodes
+        vsg::ref_ptr<vsg::Group> vsg_sno = vsg::Group::create();
+    };
+
+    auto replace_child = [](vsg::Group* group, vsg::ref_ptr<vsg::Node> previous, vsg::ref_ptr<vsg::Node> replacement)
+    {
+        for (auto& child : group->children)
+        {
+            if (child == previous) child = replacement;
+        }
+    };
+
+    std::vector<vsg::ref_ptr<vsg::Group>> pending;
+
     std::string vert_PushConstants = R"(#version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -67,8 +91,15 @@ void main() {
     outColor = texture(texSampler, fragTexCoord);
 })";
 
+    RenderingState state;
+
 }
 
+
+namespace ehb
+{
+    void static currentChanged(const QModelIndex& current, const QModelIndex& previous);
+}
 
 int main(int argc, char* argv[])
 {
@@ -93,11 +124,8 @@ int main(int argc, char* argv[])
     auto* viewerWindow = new vsgQt::ViewerWindow();
     viewerWindow->traits = windowTraits;
 
-    auto vsg_scene = vsg::Group::create();
-
     LocalFileSys fileSys;
     FileNameMap fileNameMap;
-    vsg::ref_ptr<vsg::Options> siege_options = vsg::Options::create();
 
     // provide the calls to set up the vsg::Viewer that will be used to render to the QWindow subclass vsgQt::ViewerWindow
     viewerWindow->initializeCallback = [&](vsgQt::ViewerWindow& vw) {
@@ -105,7 +133,7 @@ int main(int argc, char* argv[])
         fileSys.init(config);
         fileNameMap.init(fileSys);
 
-        siege_options->readerWriters = { ReaderWriterRAW::create(fileSys, fileNameMap),
+        state.siege_options->readerWriters = { ReaderWriterRAW::create(fileSys, fileNameMap),
                           ReaderWriterSNO::create(fileSys, fileNameMap),
                           ReaderWriterSiegeNodeList::create(fileSys, fileNameMap),
                           ReaderWriterRegion::create(fileSys, fileNameMap)
@@ -121,53 +149,55 @@ int main(int argc, char* argv[])
             return false;
         }
 
+        // set up graphics pipeline
+        vsg::DescriptorSetLayoutBindings descriptorBindings
         {
-            // set up graphics pipeline
-            vsg::DescriptorSetLayoutBindings descriptorBindings
-            {
-                {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr} // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
-            };
+            {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr} // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
+        };
 
-            vsg::DescriptorSetLayouts descriptorSetLayouts{ vsg::DescriptorSetLayout::create(descriptorBindings) };
+        vsg::DescriptorSetLayouts descriptorSetLayouts{ vsg::DescriptorSetLayout::create(descriptorBindings) };
 
-            vsg::PushConstantRanges pushConstantRanges
-            {
-                {VK_SHADER_STAGE_VERTEX_BIT, 0, 128} // projection view, and model matrices, actual push constant calls automatically provided by the VSG's DispatchTraversal
-            };
+        vsg::PushConstantRanges pushConstantRanges
+        {
+            {VK_SHADER_STAGE_VERTEX_BIT, 0, 128} // projection view, and model matrices, actual push constant calls automatically provided by the VSG's DispatchTraversal
+        };
 
-            vsg::VertexInputState::Bindings vertexBindingsDescriptions
-            {
-                VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX}, // vertex data
-                VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX}, // colour data
-                VkVertexInputBindingDescription{2, sizeof(vsg::vec2), VK_VERTEX_INPUT_RATE_VERTEX}  // tex coord data
-            };
+        vsg::VertexInputState::Bindings vertexBindingsDescriptions
+        {
+            VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX}, // vertex data
+            VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX}, // colour data
+            VkVertexInputBindingDescription{2, sizeof(vsg::vec2), VK_VERTEX_INPUT_RATE_VERTEX}  // tex coord data
+        };
 
-            vsg::VertexInputState::Attributes vertexAttributeDescriptions
-            {
-                VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0}, // vertex data
-                VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0}, // colour data
-                VkVertexInputAttributeDescription{2, 2, VK_FORMAT_R32G32_SFLOAT, 0},    // tex coord data
-            };
+        vsg::VertexInputState::Attributes vertexAttributeDescriptions
+        {
+            VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0}, // vertex data
+            VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0}, // colour data
+            VkVertexInputAttributeDescription{2, 2, VK_FORMAT_R32G32_SFLOAT, 0},    // tex coord data
+        };
 
-            vsg::GraphicsPipelineStates pipelineStates
-            {
-                vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
-                vsg::InputAssemblyState::create(),
-                vsg::RasterizationState::create(),
-                vsg::MultisampleState::create(),
-                vsg::ColorBlendState::create(),
-                vsg::DepthStencilState::create()
-            };
+        vsg::GraphicsPipelineStates pipelineStates
+        {
+            vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
+            vsg::InputAssemblyState::create(),
+            vsg::RasterizationState::create(),
+            vsg::MultisampleState::create(),
+            vsg::ColorBlendState::create(),
+            vsg::DepthStencilState::create()
+        };
 
-            auto pipelineLayout = vsg::PipelineLayout::create(descriptorSetLayouts, pushConstantRanges);
-            auto graphicsPipeline = vsg::GraphicsPipeline::create(pipelineLayout, vsg::ShaderStages{ vertexShader, fragmentShader }, pipelineStates);
-            auto bindGraphicsPipeline = vsg::BindGraphicsPipeline::create(graphicsPipeline);
+        auto pipelineLayout = vsg::PipelineLayout::create(descriptorSetLayouts, pushConstantRanges);
+        auto graphicsPipeline = vsg::GraphicsPipeline::create(pipelineLayout, vsg::ShaderStages{ vertexShader, fragmentShader }, pipelineStates);
+        auto bindGraphicsPipeline = vsg::BindGraphicsPipeline::create(graphicsPipeline);
 
-            siege_options->setObject("graphics_pipeline", bindGraphicsPipeline);
-            siege_options->setObject("layout", bindGraphicsPipeline->pipeline->layout);
+        state.siege_options->setObject("graphics_pipeline", bindGraphicsPipeline);
+        state.siege_options->setObject("layout", bindGraphicsPipeline->pipeline->layout);
 
-            vsg_scene->addChild(bindGraphicsPipeline);
-        }
+        // bind the graphics pipeline which should always stay intact
+        state.vsg_scene->addChild(bindGraphicsPipeline);
+
+        // always keep this guy below the scene to draw things
+        state.vsg_scene->addChild(state.vsg_sno);
 
         auto& window = vw.proxyWindow;
         if (!window) return false;
@@ -185,15 +215,13 @@ int main(int argc, char* argv[])
         viewer->addEventHandler(vsg::CloseHandler::create(viewer));
 
         // add trackball to enable mouse driven camera view control.
-        viewer->addEventHandler(vsg::CloseHandler::create(viewer));
-        viewer->addEventHandler(vsg::Trackball::create(camera));
-        viewer->addEventHandler(vsg::WindowResizeHandler::create());
+        //viewer->addEventHandler(vsg::Trackball::create(camera));
 
         {
             static std::string siegeNode("t_grs01_houses_generic-a-log");
             //static std::string siegeNode("t_xxx_flr_04x04-v0");
 
-            if (vsg::ref_ptr<vsg::Group> sno = vsg::read("t_grs01_houses_generic-a-log", siege_options).cast<vsg::Group>(); sno != nullptr)
+            if (vsg::ref_ptr<vsg::Group> sno = vsg::read("t_grs01_houses_generic-a-log", state.siege_options).cast<vsg::Group>(); sno != nullptr)
             {
                 auto t1 = vsg::MatrixTransform::create();
                 t1->addChild(sno);
@@ -201,14 +229,15 @@ int main(int argc, char* argv[])
                 auto t2 = vsg::MatrixTransform::create();
                 t2->addChild(sno);
 
-                vsg_scene->addChild(t1);
-                vsg_scene->addChild(t2);
+                // add nodes below the binding pipeline
+                state.vsg_sno->addChild(t1);
+                //vsg_sno->addChild(t2);
 
                 SiegeNodeMesh::connect(t1, 2, t2, 1);
             }
         }
 
-        auto commandGraph = vsg::createCommandGraphForView(window, camera, vsg_scene);
+        auto commandGraph = vsg::createCommandGraphForView(window, camera, state.vsg_scene);
         viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
 
         viewer->compile();
@@ -221,8 +250,19 @@ int main(int argc, char* argv[])
 
         if (!vw.viewer || !vw.viewer->advanceToNextFrame()) return false;
 
+        //vw.viewer->compile();
+
         // pass any events into EventHandlers assigned to the Viewer
         vw.viewer->handleEvents();
+
+        if (!pending.empty())
+        {
+            state.vsg_sno->children.clear();
+            state.vsg_sno->addChild(pending.back());
+            pending.clear();
+
+            vw.viewer->compile();
+        }
 
         vw.viewer->update();
 
@@ -237,7 +277,6 @@ int main(int argc, char* argv[])
     w.setupUi(mainWindow);
 
     auto widget = QWidget::createWindowContainer(viewerWindow, mainWindow);
-    //mainWindow->setCentralWidget(widget);
 
     mainWindow->setCentralWidget(widget);
     mainWindow->resize(windowTraits->width, windowTraits->height);
@@ -247,11 +286,61 @@ int main(int argc, char* argv[])
     QFileSystemModel model;
     model.setRootPath(config.getString("bits", "").c_str());
     model.setOption(QFileSystemModel::DontWatchForChanges);
-    model.setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+    model.setFilter(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::Files);
 
     w.treeView->setModel(&model);
     w.treeView->setRootIndex(model.index(config.getString("bits", "").c_str()));
+    w.treeView->hideColumn(1);
+    w.treeView->hideColumn(2);
+    w.treeView->hideColumn(3);
 
-    return application.exec();
+    QStringList filters;
+    filters << "*.sno";
+
+    //model.setNameFilters(filters);
+
+    QObject::connect(w.treeView->selectionModel(), &QItemSelectionModel::currentChanged, currentChanged);
+
+    int value = application.exec();
+    state.vsg_scene->unref();
+    return value;
+}
+
+namespace ehb
+{
+    void static currentChanged(const QModelIndex& current, const QModelIndex& previous) 
+    {
+        QFileInfo info(QString(current.data().toString()));
+
+        // setup filters rather than this check
+        if (info.suffix() != "sno") return;
+
+        // we need to chop the extension off because OpenSiege internally puts it back
+        // maybe it makes sense to be appending full paths in open siege to pass to loaders
+        const std::string& nodeFilename = current.data().toString().toStdString();
+        std::string file = info.baseName().toStdString();
+
+        spdlog::get("log")->info("clicked item in tree: {}", file);
+
+        if (vsg::ref_ptr<vsg::Group> sno = vsg::read(file, state.siege_options).cast<vsg::Group>(); sno != nullptr)
+        {
+            spdlog::get("log")->info("loaded vsg::read and adding to vsg_node");
+
+            //vsg_sno->children.clear();
+
+            auto t1 = vsg::MatrixTransform::create();
+            //t1->addChild(sno);            
+
+            //auto t2 = vsg::MatrixTransform::create();
+            //t2->addChild(sno);
+
+            // add nodes below the binding pipeline
+            //state.vsg_scene->addChild(t1);
+            //vsg_sno->addChild(t2);
+            pending.push_back(sno);
+
+            //SiegeNodeMesh::connect(t1, 2, t2, 1);
+        }
+    }
 }
 
