@@ -1,14 +1,14 @@
 #include <vsg/all.h>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
 
 #include <vsgQt/ViewerWindow.h>
 
 #include "MainWindow.hpp"
-
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 
 #include "cfg/WritableConfig.hpp"
 
@@ -19,13 +19,6 @@
 #include "vsg/ReaderWriterSNO.hpp"
 #include "vsg/ReaderWriterSiegeNodeList.hpp"
 #include "vsg/ReaderWriterRegion.hpp"
-
-#include "ui_editor.h"
-
-#include <QFileSystemModel>
-#include <QModelIndex>
-#include <QFileInfo>
-#include <QInputDialog>
 
 namespace ehb
 {
@@ -98,12 +91,17 @@ void main() {
 
 int main(int argc, char* argv[])
 {
+    using namespace ehb;
+
     auto log = spdlog::stdout_color_mt("log");
 
-    using namespace ehb;
+    // setup our application right away so we can start working with modal config windows
+    QApplication application(argc, argv);
 
     WritableConfig config(argc, argv);
     config.dump("log");
+
+    ehb::MainWindow* mainWindow = new ehb::MainWindow(config);
 
     auto windowTraits = vsg::WindowTraits::create();
     windowTraits->windowTitle = "Open Siege Editor";
@@ -111,11 +109,6 @@ int main(int argc, char* argv[])
     windowTraits->apiDumpLayer = false;
     windowTraits->width = 800;
     windowTraits->height = 600;
-
-    QApplication application(argc, argv);
-
-    //QMainWindow* mainWindow = new QMainWindow();
-    ehb::MainWindow* mainWindow = new ehb::MainWindow(config);
 
     auto* viewerWindow = new vsgQt::ViewerWindow();
     viewerWindow->traits = windowTraits;
@@ -269,11 +262,6 @@ int main(int argc, char* argv[])
 
         return true;
     };
-
-    bool ok;
-    QString bitsDir = QInputDialog::getText(mainWindow, "Bits directory pathing", "Path", QLineEdit::Normal, config.getString("bits", "").c_str(), &ok);
-
-    config.setString("bits", bitsDir.toStdString());
 
     auto widget = QWidget::createWindowContainer(viewerWindow, mainWindow);
 

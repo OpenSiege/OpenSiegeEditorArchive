@@ -4,14 +4,16 @@
 #include <QMainWindow>
 #include "ui_editor.h"
 
+#include "cfg/WritableConfig.hpp"
+
 namespace ehb
 {
-    class IConfig;
+    class WritableConfig;
     class MainWindow : public QMainWindow
     {
     public:
 
-        MainWindow(IConfig& config, QWidget* parent = nullptr);
+        MainWindow(WritableConfig& config, QWidget* parent = nullptr);
 
         virtual ~MainWindow() = default;
 
@@ -19,7 +21,7 @@ namespace ehb
 
         Ui::MainWindow ui;
 
-        IConfig& config;
+        WritableConfig& config;
 
         void currentChanged(const QModelIndex& current, const QModelIndex& previous);
     };

@@ -2,17 +2,33 @@
 #include "MainWindow.hpp"
 
 #include <QFileSystemModel>
+#include <QInputDialog>
 #include <QDebug>
-
-#include "cfg/IConfig.hpp"
 
 #include <spdlog/spdlog.h>
 
 namespace ehb
 {
-    MainWindow::MainWindow(IConfig& config, QWidget* parent) : QMainWindow(parent), config(config)
+    MainWindow::MainWindow(WritableConfig& config, QWidget* parent) : QMainWindow(parent), config(config)
     {
         ui.setupUi(this);
+
+        if (config.getString("bits", "").empty())
+        {
+            bool ok;
+            QString bitsDir = QInputDialog::getText(this, "Set Bits Directory", "Path", QLineEdit::Normal, config.getString("bits", "").c_str(), &ok);
+
+            // cancel
+            if (ok && !bitsDir.isEmpty())
+            {
+                config.setString("bits", bitsDir.toStdString());
+            }
+            else
+            {
+                // bail bail bail
+                QMetaObject::invokeMethod(this, "close", Qt::QueuedConnection);
+            }
+        }
 
         qDebug() << "bits path: " << config.getString("bits", "").c_str();
 
