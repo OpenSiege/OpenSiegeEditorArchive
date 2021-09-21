@@ -279,6 +279,8 @@ int main(int argc, char* argv[])
     bool ok;
     QString bitsDir = QInputDialog::getText(mainWindow, "Bits directory pathing", "Path", QLineEdit::Normal, config.getString("bits", "").c_str(), &ok);
 
+    config.setString("bits", bitsDir.toStdString());
+
     auto widget = QWidget::createWindowContainer(viewerWindow, mainWindow);
 
     mainWindow->setCentralWidget(widget);
