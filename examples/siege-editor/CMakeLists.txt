@@ -21,6 +21,7 @@ set(SOURCES
     cfg/WritableConfig.cpp
     
     MainWindow.cpp
+    SiegePipeline.cpp
 )
 
 set(HEADERS

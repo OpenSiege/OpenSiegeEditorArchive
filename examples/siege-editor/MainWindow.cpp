@@ -6,6 +6,8 @@
 #include "vsg/ReaderWriterSiegeNodeList.hpp"
 #include "vsg/ReaderWriterRegion.hpp"
 
+#include "SiegePipeline.hpp"
+
 // work-around for weird VK_NO_PROTOTYPES issue with Qt
 #include <vsg/vk/CommandPool.h>
 #include <vsg/vk/Fence.h>
@@ -22,47 +24,6 @@
 
 namespace ehb
 {
-
-    std::string vert_PushConstants = R"(#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout(push_constant) uniform PushConstants {
-    mat4 projection;
-    mat4 modelview;
-} pc;
-
-layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inColor;
-layout(location = 2) in vec2 inTexCoord;
-
-layout(location = 0) out vec3 fragColor;
-layout(location = 1) out vec2 fragTexCoord;
-
-out gl_PerVertex {
-    vec4 gl_Position;
-};
-
-void main() {
-    gl_Position = (pc.projection * pc.modelview) * vec4(inPosition, 1.0);
-    fragColor = inColor;
-    fragTexCoord = inTexCoord;
-}
-
-)";
-
-    std::string frag_PushConstants = R"(#version 450
-#extension GL_ARB_separate_shader_objects : enable
-
-layout(binding = 0) uniform sampler2D texSampler;
-
-layout(location = 0) in vec3 fragColor;
-layout(location = 1) in vec2 fragTexCoord;
-
-layout(location = 0) out vec4 outColor;
-
-void main() {
-    outColor = texture(texSampler, fragTexCoord);
-})";
 
     MainWindow::MainWindow(WritableConfig& config, QWidget* parent) : QMainWindow(parent), config(config)
     {
@@ -83,8 +44,6 @@ void main() {
                 QMetaObject::invokeMethod(this, "close", Qt::QueuedConnection);
             }
         }
-
-        qDebug() << "bits path: " << config.getString("bits", "").c_str();
 
         QString bitsPath(config.getString("bits", "").c_str());
 
@@ -108,7 +67,7 @@ void main() {
 
         auto windowTraits = vsg::WindowTraits::create();
         windowTraits->windowTitle = "Open Siege Editor";
-        windowTraits->debugLayer = false;
+        windowTraits->debugLayer = true;
         windowTraits->apiDumpLayer = false;
         windowTraits->width = 800;
         windowTraits->height = 600;
@@ -117,7 +76,6 @@ void main() {
         viewerWindow->traits = windowTraits;
 
         auto log = spdlog::get("log");
-
 
         // provide the calls to set up the vsg::Viewer that will be used to render to the QWindow subclass vsgQt::ViewerWindow
         viewerWindow->initializeCallback = [&](vsgQt::ViewerWindow& vw) {
@@ -131,8 +89,8 @@ void main() {
                               ReaderWriterRegion::create(fileSys, fileNameMap)
             };
 
-            vsg::ref_ptr<vsg::ShaderStage> vertexShader = vsg::ShaderStage::create(VK_SHADER_STAGE_VERTEX_BIT, "main", vert_PushConstants);
-            vsg::ref_ptr<vsg::ShaderStage> fragmentShader = vsg::ShaderStage::create(VK_SHADER_STAGE_FRAGMENT_BIT, "main", frag_PushConstants);
+            vsg::ref_ptr<vsg::ShaderStage> vertexShader = vsg::ShaderStage::create(VK_SHADER_STAGE_VERTEX_BIT, "main", vertexPushConstantsSource);
+            vsg::ref_ptr<vsg::ShaderStage> fragmentShader = vsg::ShaderStage::create(VK_SHADER_STAGE_FRAGMENT_BIT, "main", fragmentPushConstantsSource);
 
             if (!vertexShader || !fragmentShader)
             {
