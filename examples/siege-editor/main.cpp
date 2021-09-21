@@ -214,7 +214,7 @@ int main(int argc, char* argv[])
         viewer->addEventHandler(vsg::CloseHandler::create(viewer));
 
         // add trackball to enable mouse driven camera view control.
-        //viewer->addEventHandler(vsg::Trackball::create(camera));
+        viewer->addEventHandler(vsg::Trackball::create(camera));
 
         {
             static std::string siegeNode("t_grs01_houses_generic-a-log");

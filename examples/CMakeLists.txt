@@ -1,1 +1,1 @@
-add_subdirectory(vsgqtviewer)
+add_subdirectory(siege-editor)
