@@ -104,6 +104,7 @@ namespace ehb
                         // since our data cache is enabled, we should be getting the same pointer back every time we load this node
                         // from here we can check for the instance data that should be directly associated with it
                         // on the first load we have to make sure we actually create and store the instance data
+#if 0
                         vsg::ref_ptr<InstanceData> instanceData (mesh->getObject<InstanceData>("InstanceData"));
                         if (instanceData == nullptr)
                         {
@@ -112,6 +113,7 @@ namespace ehb
 
                             uniqueMeshes.emplace(mesh.cast<SiegeNodeMesh>());
                         }
+#endif
 
                         auto xform = vsg::MatrixTransform::create();
 
@@ -281,7 +283,7 @@ namespace ehb
             for (auto const& mesh : uniqueMeshes)
             {
                 std::string name; mesh->getValue("name", name);
-                log->info("{} has {} instances", name, mesh->getObject<InstanceData>("InstanceData")->matrices.size());
+                // log->info("{} has {} instances", name, mesh->getObject<InstanceData>("InstanceData")->matrices.size());
             }
 #endif
             log->info("region loaded with {} nodes, targetGuid: 0x{:x}", group->children.size(), targetGuid);

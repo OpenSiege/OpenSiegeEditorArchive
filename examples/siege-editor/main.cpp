@@ -298,6 +298,8 @@ int main(int argc, char* argv[])
     w.treeView->hideColumn(1);
     w.treeView->hideColumn(2);
     w.treeView->hideColumn(3);
+    w.treeView->header()->setStretchLastSection(true);
+    w.treeView->header()->setVisible(false);
 
     QStringList filters;
     filters << "*.sno";
