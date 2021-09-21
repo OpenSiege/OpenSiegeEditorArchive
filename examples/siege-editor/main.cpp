@@ -5,6 +5,8 @@
 
 #include <vsgQt/ViewerWindow.h>
 
+#include "MainWindow.hpp"
+
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
@@ -94,12 +96,6 @@ void main() {
 
 }
 
-
-namespace ehb
-{
-    void static currentChanged(const QModelIndex& current, const QModelIndex& previous);
-}
-
 int main(int argc, char* argv[])
 {
     auto log = spdlog::stdout_color_mt("log");
@@ -118,7 +114,8 @@ int main(int argc, char* argv[])
 
     QApplication application(argc, argv);
 
-    QMainWindow* mainWindow = new QMainWindow();
+    //QMainWindow* mainWindow = new QMainWindow();
+    ehb::MainWindow* mainWindow = new ehb::MainWindow(config);
 
     auto* viewerWindow = new vsgQt::ViewerWindow();
     viewerWindow->traits = windowTraits;
@@ -273,9 +270,6 @@ int main(int argc, char* argv[])
         return true;
     };
 
-    Ui_MainWindow w;
-    w.setupUi(mainWindow);
-
     bool ok;
     QString bitsDir = QInputDialog::getText(mainWindow, "Bits directory pathing", "Path", QLineEdit::Normal, config.getString("bits", "").c_str(), &ok);
 
@@ -288,66 +282,8 @@ int main(int argc, char* argv[])
 
     mainWindow->show();
 
-    QFileSystemModel model;
-    model.setRootPath(config.getString("bits", "").c_str());
-    model.setOption(QFileSystemModel::DontWatchForChanges);
-    model.setFilter(QDir::NoDotAndDotDot | QDir::Files | QDir::AllDirs);
-
-    w.treeView->setModel(&model);
-    w.treeView->setRootIndex(model.index(config.getString("bits", "").c_str()));
-    w.treeView->hideColumn(1);
-    w.treeView->hideColumn(2);
-    w.treeView->hideColumn(3);
-    w.treeView->header()->setStretchLastSection(true);
-    w.treeView->header()->setVisible(false);
-
-    QStringList filters;
-    filters << "*.sno";
-
-    model.setNameFilters(filters);
-
-    QObject::connect(w.treeView->selectionModel(), &QItemSelectionModel::currentChanged, currentChanged);
-
     int value = application.exec();
     state.vsg_scene->unref();
     return value;
-}
-
-namespace ehb
-{
-    void static currentChanged(const QModelIndex& current, const QModelIndex& previous) 
-    {
-        QFileInfo info(QString(current.data().toString()));
-
-        // setup filters rather than this check
-        if (info.suffix() != "sno") return;
-
-        // we need to chop the extension off because OpenSiege internally puts it back
-        // maybe it makes sense to be appending full paths in open siege to pass to loaders
-        const std::string& nodeFilename = current.data().toString().toStdString();
-        std::string file = info.baseName().toStdString();
-
-        spdlog::get("log")->info("clicked item in tree: {}", file);
-
-        if (vsg::ref_ptr<vsg::Group> sno = vsg::read(file, state.siege_options).cast<vsg::Group>(); sno != nullptr)
-        {
-            spdlog::get("log")->info("loaded vsg::read and adding to vsg_node");
-
-            //vsg_sno->children.clear();
-
-            auto t1 = vsg::MatrixTransform::create();
-            //t1->addChild(sno);            
-
-            //auto t2 = vsg::MatrixTransform::create();
-            //t2->addChild(sno);
-
-            // add nodes below the binding pipeline
-            //state.vsg_scene->addChild(t1);
-            //vsg_sno->addChild(t2);
-            pending.push_back(sno);
-
-            //SiegeNodeMesh::connect(t1, 2, t2, 1);
-        }
-    }
 }
 

@@ -19,6 +19,8 @@ set(SOURCES
     cfg/SteamConfig.cpp
     cfg/UserConfig.cpp
     cfg/WritableConfig.cpp
+    
+    MainWindow.cpp
 )
 
 set(HEADERS
