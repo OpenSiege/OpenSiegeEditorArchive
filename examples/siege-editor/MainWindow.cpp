@@ -17,6 +17,8 @@
 #include <QDialogButtonBox>
 #include <QListWidget>
 #include <QVBoxLayout>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 
 #include <spdlog/spdlog.h>
 
@@ -36,6 +38,8 @@ namespace ehb
         QListWidget* listOfMaps;
         QVBoxLayout* layout;
 
+        QTreeWidget* treeWidget;
+
     public:
 
         LoadMapDialog(Systems& systems, QWidget* parent = nullptr) : QDialog(parent)
@@ -45,14 +49,16 @@ namespace ehb
             buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
             listOfMaps = new QListWidget();
 
-            layout->addWidget(listOfMaps);
+            treeWidget = new QTreeWidget();
+            treeWidget->setColumnCount(2);
+            treeWidget->setHeaderLabels(QStringList{ "Name", "Description" });
+
+            //layout->addWidget(listOfMaps);
+            layout->addWidget(treeWidget);
             layout->addWidget(buttonBox);
 
             connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
             connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-
-            fs::path bitsPath(systems.config.getString("bits", ""));
-            auto mapsPath = bitsPath / "world/maps";
 
             auto maps = systems.fileSys.getDirectoryContents("/world/maps");
 
@@ -63,7 +69,30 @@ namespace ehb
                 {
                     if (Fuel doc; doc.load(*stream))
                     {
-                        listOfMaps->addItem(stem(map).c_str());
+                        QTreeWidgetItem* item = new QTreeWidgetItem;
+                        item->setText(0, stem(map).c_str());
+
+                        treeWidget->addTopLevelItem(item);
+
+                        auto regions = systems.fileSys.getDirectoryContents(map + "/regions");
+                        for (const auto& region : regions)
+                        {
+                            spdlog::get("log")->info("{}", region);
+
+                            std::string regionmaindotgas = region + "/main.gas";
+                            if (stream = systems.fileSys.createInputStream(regionmaindotgas))
+                            {
+                                if (Fuel doc2; doc2.load(*stream))
+                                {
+                                    spdlog::get("log")->info("Load region file plz");
+                                    QTreeWidgetItem* item2 = new QTreeWidgetItem;
+                                    item2->setText(0, stem(region).c_str());
+                                    item2->setText(1, doc2.valueAsString("region:description").c_str());
+                                    item->addChild(item2);
+                                }
+                            }
+                        }
+                        
                     }
                 }
             }
