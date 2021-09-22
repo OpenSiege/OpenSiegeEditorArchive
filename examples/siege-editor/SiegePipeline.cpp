@@ -84,7 +84,7 @@ void main() {
 
         if (!vertexShader || !fragmentShader)
         {
-            spdlog::get("log")->error("Could not create shaders.");
+            spdlog::get("log")->critical("Could not create shaders.");
 
             return;
         }

@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <vsg/all.h>
 #ifdef vsgXchange_FOUND
-#include <vsgXchange/all.h>
+#    include <vsgXchange/all.h>
 #endif
 
 #include <QPlatformSurfaceEvent>
