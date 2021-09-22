@@ -1,10 +1,14 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+// make sure to include vsg headers before qt ones
+#include <vsg/io/Options.h>
+
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
 
 #include "cfg/WritableConfig.hpp"
+#include "SiegePipeline.hpp"
 #include "MainWindow.hpp"
 
 int main(int argc, char* argv[])
@@ -19,7 +23,11 @@ int main(int argc, char* argv[])
     WritableConfig config(argc, argv);
     config.dump("log");
 
-    MainWindow* mainWindow = new MainWindow(config);
+    // initiate blocking siege systems for now, this should probably be refactored
+    Systems systems(config);
+    systems.init();
+
+    MainWindow* mainWindow = new MainWindow(systems);
     mainWindow->show();
 
     return application.exec();

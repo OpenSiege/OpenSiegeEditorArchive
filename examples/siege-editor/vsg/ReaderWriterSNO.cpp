@@ -213,7 +213,7 @@ namespace ehb
                 (*indicies)[j] = start + value;
             }
 
-            auto layout = options ? dynamic_cast<const vsg::PipelineLayout*>(options->getObject("layout")) : nullptr;
+            auto layout = options ? dynamic_cast<const vsg::PipelineLayout*>(options->getObject("PipelineLayout")) : nullptr;
             if (layout != nullptr)
             {
                 if (auto textureData = vsg::read(textureName, options).cast<vsg::Data>(); textureData != nullptr)

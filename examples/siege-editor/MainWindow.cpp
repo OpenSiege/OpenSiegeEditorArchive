@@ -1,11 +1,6 @@
 
 #include "MainWindow.hpp"
 
-#include "vsg/ReaderWriterRAW.hpp"
-#include "vsg/ReaderWriterSNO.hpp"
-#include "vsg/ReaderWriterSiegeNodeList.hpp"
-#include "vsg/ReaderWriterRegion.hpp"
-
 #include "SiegePipeline.hpp"
 
 // work-around for weird VK_NO_PROTOTYPES issue with Qt
@@ -22,21 +17,24 @@
 
 #include <spdlog/spdlog.h>
 
+#include "cfg/WritableConfig.hpp"
+#include "SiegePipeline.hpp"
+
 namespace ehb
 {
 
-    MainWindow::MainWindow(WritableConfig& config, QWidget* parent) : QMainWindow(parent), config(config)
+    MainWindow::MainWindow(Systems& systems, QWidget* parent) : QMainWindow(parent), systems(systems)
     {
         ui.setupUi(this);
 
-        if (config.getString("bits", "").empty())
+        if (systems.config.getString("bits", "").empty())
         {
             bool ok;
-            QString bitsDir = QInputDialog::getText(this, "Set Bits Directory", "Path", QLineEdit::Normal, config.getString("bits", "").c_str(), &ok);
+            QString bitsDir = QInputDialog::getText(this, "Set Bits Directory", "Path", QLineEdit::Normal, systems.config.getString("bits", "").c_str(), &ok);
 
             if (ok && !bitsDir.isEmpty())
             {
-                config.setString("bits", bitsDir.toStdString());
+                systems.config.setString("bits", bitsDir.toStdString());
             }
             else
             {
@@ -45,7 +43,7 @@ namespace ehb
             }
         }
 
-        QString bitsPath(config.getString("bits", "").c_str());
+        QString bitsPath(systems.config.getString("bits", "").c_str());
 
         QFileSystemModel* fileSystemModel = new QFileSystemModel(ui.treeView);
         {
@@ -80,20 +78,6 @@ namespace ehb
         // provide the calls to set up the vsg::Viewer that will be used to render to the QWindow subclass vsgQt::ViewerWindow
         viewerWindow->initializeCallback = [&](vsgQt::ViewerWindow& vw) {
 
-            fileSys.init(config);
-            fileNameMap.init(fileSys);
-
-            siege_options->readerWriters = { ReaderWriterRAW::create(fileSys, fileNameMap),
-                              ReaderWriterSNO::create(fileSys, fileNameMap),
-                              ReaderWriterSiegeNodeList::create(fileSys, fileNameMap),
-                              ReaderWriterRegion::create(fileSys, fileNameMap)
-            };
-
-            SiegeNodePipeline::SetupPipeline();
-
-            siege_options->setObject("graphics_pipeline", SiegeNodePipeline::GraphicsPipeline);
-            siege_options->setObject("layout", SiegeNodePipeline::PipelineLayout);
-
             // bind the graphics pipeline which should always stay intact
             vsg_scene->addChild(SiegeNodePipeline::BindGraphicsPipeline);
 
@@ -123,7 +107,7 @@ namespace ehb
                 //static std::string siegeNode("t_xxx_flr_04x04-v0");
 
                 //if (vsg::ref_ptr<vsg::Group> sno = vsg::read("t_grs01_houses_generic-a-log", siege_options).cast<vsg::Group>(); sno != nullptr)
-                if (auto sno = vsg::read("world/maps/multiplayer_world/regions/town_center.region", siege_options).cast<vsg::MatrixTransform>())
+                if (auto sno = vsg::read("world/maps/multiplayer_world/regions/town_center.region", systems.options).cast<vsg::MatrixTransform>())
                 {
                     auto t1 = vsg::MatrixTransform::create();
                     t1->addChild(sno);

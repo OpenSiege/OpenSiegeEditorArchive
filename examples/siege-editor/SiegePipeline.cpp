@@ -4,6 +4,15 @@
 #include <vsg/all.h>
 #include <spdlog/spdlog.h>
 
+#include "io/IFileSys.hpp"
+#include "io/FileNameMap.hpp"
+#include "cfg/WritableConfig.hpp"
+
+#include "vsg/ReaderWriterRAW.hpp"
+#include "vsg/ReaderWriterSNO.hpp"
+#include "vsg/ReaderWriterSiegeNodeList.hpp"
+#include "vsg/ReaderWriterRegion.hpp"
+
 namespace ehb
 {
     const std::string vertexPushConstantsSource = R"(#version 450
@@ -46,16 +55,36 @@ void main() {
     outColor = texture(texSampler, fragTexCoord);
 })";
 
+    void Systems::init()
+    {
+        fileSys.init(config);
+        fileNameMap.init(fileSys);
+
+        options->readerWriters = {
+
+        ReaderWriterRAW::create(fileSys, fileNameMap),
+                      ReaderWriterSNO::create(fileSys, fileNameMap),
+                      ReaderWriterSiegeNodeList::create(fileSys, fileNameMap),
+                      ReaderWriterRegion::create(fileSys, fileNameMap)
+
+        };
+
+        SiegeNodePipeline::SetupPipeline();
+        
+        // we currently have two ways to access this variable
+        // the first is via options that get passed around
+        // the second is via the static variable - which should only be accessed and not written to so should be thread safe?
+        options->setObject("PipelineLayout", SiegeNodePipeline::PipelineLayout);
+    }
+
     void SiegeNodePipeline::SetupPipeline()
     {
-        auto log = spdlog::get("log");
-
         vsg::ref_ptr<vsg::ShaderStage> vertexShader = vsg::ShaderStage::create(VK_SHADER_STAGE_VERTEX_BIT, "main", vertexPushConstantsSource);
         vsg::ref_ptr<vsg::ShaderStage> fragmentShader = vsg::ShaderStage::create(VK_SHADER_STAGE_FRAGMENT_BIT, "main", fragmentPushConstantsSource);
 
         if (!vertexShader || !fragmentShader)
         {
-            log->error("Could not create shaders.");
+            spdlog::get("log")->error("Could not create shaders.");
 
             return;
         }

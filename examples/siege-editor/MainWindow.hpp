@@ -4,11 +4,6 @@
 #include <QMainWindow>
 #include "ui_editor.h"
 
-#include "cfg/WritableConfig.hpp"
-
-#include "io/LocalFileSys.hpp"
-#include "io/FileNameMap.hpp"
-
 #include <vsg/io/Options.h>
 #include <vsg/nodes/Group.h>
 
@@ -19,12 +14,12 @@ namespace vsgQt
 
 namespace ehb
 {
-    class WritableConfig;
+    class Systems;
     class MainWindow : public QMainWindow
     {
     public:
 
-        MainWindow(WritableConfig& config, QWidget* parent = nullptr);
+        MainWindow(Systems& systems, QWidget* parent = nullptr);
 
         virtual ~MainWindow() = default;
 
@@ -32,15 +27,7 @@ namespace ehb
 
         Ui::MainWindow ui;
 
-        WritableConfig& config;
-
-        LocalFileSys fileSys;
-        FileNameMap fileNameMap;
-
-        vsgQt::ViewerWindow* vsgViewerWindow;
-
-        // need options to make sure we can call properly loading of rendering objects
-        vsg::ref_ptr<vsg::Options> siege_options = vsg::Options::create();
+        Systems& systems;
 
         // top of the graph that contains the binding pipeline
         vsg::ref_ptr<vsg::Group> vsg_scene = vsg::Group::create();
