@@ -67,7 +67,7 @@ namespace ehb
 
         auto windowTraits = vsg::WindowTraits::create();
         windowTraits->windowTitle = "Open Siege Editor";
-        windowTraits->debugLayer = true;
+        windowTraits->debugLayer = false;
         windowTraits->apiDumpLayer = false;
         windowTraits->width = 800;
         windowTraits->height = 600;
@@ -89,62 +89,13 @@ namespace ehb
                               ReaderWriterRegion::create(fileSys, fileNameMap)
             };
 
-            vsg::ref_ptr<vsg::ShaderStage> vertexShader = vsg::ShaderStage::create(VK_SHADER_STAGE_VERTEX_BIT, "main", vertexPushConstantsSource);
-            vsg::ref_ptr<vsg::ShaderStage> fragmentShader = vsg::ShaderStage::create(VK_SHADER_STAGE_FRAGMENT_BIT, "main", fragmentPushConstantsSource);
+            SiegeNodePipeline::SetupPipeline();
 
-            if (!vertexShader || !fragmentShader)
-            {
-                log->error("Could not create shaders.");
-
-                return false;
-            }
-
-            // set up graphics pipeline
-            vsg::DescriptorSetLayoutBindings descriptorBindings
-            {
-                {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr} // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
-            };
-
-            vsg::DescriptorSetLayouts descriptorSetLayouts{ vsg::DescriptorSetLayout::create(descriptorBindings) };
-
-            vsg::PushConstantRanges pushConstantRanges
-            {
-                {VK_SHADER_STAGE_VERTEX_BIT, 0, 128} // projection view, and model matrices, actual push constant calls automatically provided by the VSG's DispatchTraversal
-            };
-
-            vsg::VertexInputState::Bindings vertexBindingsDescriptions
-            {
-                VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX}, // vertex data
-                VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX}, // colour data
-                VkVertexInputBindingDescription{2, sizeof(vsg::vec2), VK_VERTEX_INPUT_RATE_VERTEX}  // tex coord data
-            };
-
-            vsg::VertexInputState::Attributes vertexAttributeDescriptions
-            {
-                VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0}, // vertex data
-                VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0}, // colour data
-                VkVertexInputAttributeDescription{2, 2, VK_FORMAT_R32G32_SFLOAT, 0},    // tex coord data
-            };
-
-            vsg::GraphicsPipelineStates pipelineStates
-            {
-                vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
-                vsg::InputAssemblyState::create(),
-                vsg::RasterizationState::create(),
-                vsg::MultisampleState::create(),
-                vsg::ColorBlendState::create(),
-                vsg::DepthStencilState::create()
-            };
-
-            auto pipelineLayout = vsg::PipelineLayout::create(descriptorSetLayouts, pushConstantRanges);
-            auto graphicsPipeline = vsg::GraphicsPipeline::create(pipelineLayout, vsg::ShaderStages{ vertexShader, fragmentShader }, pipelineStates);
-            auto bindGraphicsPipeline = vsg::BindGraphicsPipeline::create(graphicsPipeline);
-
-            siege_options->setObject("graphics_pipeline", bindGraphicsPipeline);
-            siege_options->setObject("layout", bindGraphicsPipeline->pipeline->layout);
+            siege_options->setObject("graphics_pipeline", SiegeNodePipeline::GraphicsPipeline);
+            siege_options->setObject("layout", SiegeNodePipeline::PipelineLayout);
 
             // bind the graphics pipeline which should always stay intact
-            vsg_scene->addChild(bindGraphicsPipeline);
+            vsg_scene->addChild(SiegeNodePipeline::BindGraphicsPipeline);
 
             // always keep this guy below the scene to draw things
             vsg_scene->addChild(vsg_sno);
