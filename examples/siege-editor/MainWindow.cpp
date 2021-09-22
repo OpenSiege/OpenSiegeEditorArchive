@@ -14,11 +14,62 @@
 #include <QDebug>
 #include <QFileSystemModel>
 #include <QInputDialog>
+#include <QDialogButtonBox>
+#include <QListWidget>
+#include <QVBoxLayout>
 
 #include <spdlog/spdlog.h>
 
 #include "SiegePipeline.hpp"
 #include "cfg/WritableConfig.hpp"
+
+#include <filesystem>
+
+namespace fs = std::filesystem;
+
+namespace ehb
+{
+    class LoadMapDialog : public QDialog
+    {
+
+        QDialogButtonBox *buttonBox;
+        QListWidget* listOfMaps;
+        QVBoxLayout* layout;
+
+    public:
+
+        LoadMapDialog(Systems& systems, QWidget* parent = nullptr) : QDialog(parent)
+        {
+            layout = new QVBoxLayout(this);
+
+            buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+            listOfMaps = new QListWidget();
+
+            layout->addWidget(listOfMaps);
+            layout->addWidget(buttonBox);
+
+            connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+            connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+            fs::path bitsPath(systems.config.getString("bits", ""));
+            auto mapsPath = bitsPath / "world/maps";
+
+            auto maps = systems.fileSys.getDirectoryContents("/world/maps");
+
+            for (const auto& map : maps)
+            {
+                std::string path = map + "/main.gas";
+                if (auto stream = systems.fileSys.createInputStream(path))
+                {
+                    if (Fuel doc; doc.load(*stream))
+                    {
+                        listOfMaps->addItem(stem(map).c_str());
+                    }
+                }
+            }
+        }
+    };
+}
 
 namespace ehb
 {
@@ -26,6 +77,8 @@ namespace ehb
     MainWindow::MainWindow(Systems& systems, QWidget* parent) :
         QMainWindow(parent), systems(systems)
     {
+        auto log = spdlog::get("log");
+
         ui.setupUi(this);
 
         if (systems.config.getString("bits", "").empty())
@@ -42,6 +95,12 @@ namespace ehb
                 // bail bail bail
                 QMetaObject::invokeMethod(this, "close", Qt::QueuedConnection);
             }
+        }
+
+        LoadMapDialog dialog(systems, this);
+        if (dialog.exec() == QDialog::Accepted)
+        {
+            log->info("lets load a map");
         }
 
         QString bitsPath(systems.config.getString("bits", "").c_str());
@@ -73,8 +132,6 @@ namespace ehb
 
         auto* viewerWindow = new vsgQt::ViewerWindow();
         viewerWindow->traits = windowTraits;
-
-        auto log = spdlog::get("log");
 
         // provide the calls to set up the vsg::Viewer that will be used to render to the QWindow subclass vsgQt::ViewerWindow
         viewerWindow->initializeCallback = [&](vsgQt::ViewerWindow& vw) {

@@ -51,6 +51,12 @@ namespace ehb
         return path.filename().string();
     }
 
+    inline std::string stem(const std::string& fileName)
+    {
+        fs::path path(fileName);
+        return path.stem().string();
+    }
+
     // the standard returns an extension as ".ext"
     // osg returns an extension as "ext"
     // we will elect to use the standard
