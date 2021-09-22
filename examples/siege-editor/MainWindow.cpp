@@ -4,26 +4,27 @@
 #include "SiegePipeline.hpp"
 
 // work-around for weird VK_NO_PROTOTYPES issue with Qt
+#include <vsg/all.h>
 #include <vsg/vk/CommandPool.h>
 #include <vsg/vk/Fence.h>
-#include <vsg/all.h>
 
 #include <vsg/viewer/Viewer.h>
 #include <vsgQt/ViewerWindow.h>
 
+#include <QDebug>
 #include <QFileSystemModel>
 #include <QInputDialog>
-#include <QDebug>
 
 #include <spdlog/spdlog.h>
 
-#include "cfg/WritableConfig.hpp"
 #include "SiegePipeline.hpp"
+#include "cfg/WritableConfig.hpp"
 
 namespace ehb
 {
 
-    MainWindow::MainWindow(Systems& systems, QWidget* parent) : QMainWindow(parent), systems(systems)
+    MainWindow::MainWindow(Systems& systems, QWidget* parent) :
+        QMainWindow(parent), systems(systems)
     {
         ui.setupUi(this);
 
@@ -77,7 +78,6 @@ namespace ehb
 
         // provide the calls to set up the vsg::Viewer that will be used to render to the QWindow subclass vsgQt::ViewerWindow
         viewerWindow->initializeCallback = [&](vsgQt::ViewerWindow& vw) {
-
             // bind the graphics pipeline which should always stay intact
             vsg_scene->addChild(SiegeNodePipeline::BindGraphicsPipeline);
 
@@ -124,16 +124,14 @@ namespace ehb
             }
 
             auto commandGraph = vsg::createCommandGraphForView(window, camera, vsg_scene);
-            viewer->assignRecordAndSubmitTaskAndPresentation({ commandGraph });
+            viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
 
             viewer->compile();
 
             return true;
-
         };
 
         viewerWindow->frameCallback = [](vsgQt::ViewerWindow& vw) {
-
             if (!vw.viewer || !vw.viewer->advanceToNextFrame()) return false;
 
             //vw.viewer->compile();
@@ -171,4 +169,4 @@ namespace ehb
 
         spdlog::get("log")->info("clicked item in tree: {}", file);
     }
-}
+} // namespace ehb

@@ -8,7 +8,8 @@
 
 namespace ehb
 {
-    ReaderWriterRegion::ReaderWriterRegion(IFileSys& fileSys, FileNameMap& fileNameMap) : fileSys(fileSys), fileNameMap(fileNameMap)
+    ReaderWriterRegion::ReaderWriterRegion(IFileSys& fileSys, FileNameMap& fileNameMap) :
+        fileSys(fileSys), fileNameMap(fileNameMap)
     {
         log = spdlog::get("log");
     }
@@ -70,4 +71,4 @@ namespace ehb
 
         return vsg::ref_ptr<vsg::Object>();
     };
-}
+} // namespace ehb

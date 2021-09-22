@@ -1,3 +1,4 @@
+
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
@@ -7,9 +8,9 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
 
-#include "cfg/WritableConfig.hpp"
-#include "SiegePipeline.hpp"
 #include "MainWindow.hpp"
+#include "SiegePipeline.hpp"
+#include "cfg/WritableConfig.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -32,4 +33,3 @@ int main(int argc, char* argv[])
 
     return application.exec();
 }
-

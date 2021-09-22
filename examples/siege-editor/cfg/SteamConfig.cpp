@@ -1,15 +1,15 @@
 
 #include "WritableConfig.hpp"
-#include <vector>
 #include "vdf_parser.hpp"
+#include <vector>
 
 #ifdef WIN32
-    #include <windows.h>
-    #include <filesystem>
-    namespace fs = std::filesystem;
+#    include <filesystem>
+#    include <windows.h>
+namespace fs = std::filesystem;
 #else
-    #include <experimental/filesystem>
-    namespace fs = std::experimental::filesystem;
+#    include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 #endif
 
 namespace ehb
@@ -20,7 +20,7 @@ namespace ehb
     // TODO: make an IConfigSrc class
     // TODO: convert this into an implementation of the IConfigSrc class
 
-    void locate_install_dir(WritableConfig& config, const fs::path & steamApps);
+    void locate_install_dir(WritableConfig& config, const fs::path& steamApps);
 
     constexpr const char* registryKey = "Software\\Valve\\Steam";
 
@@ -49,11 +49,10 @@ namespace ehb
 #endif
     }
 
-
     void locate_install_dir(WritableConfig& config, const fs::path& steamApps)
     {
         // list of steamapps directories to search for an installed dungeon siege
-        std::vector<fs::path> eachSteamApps = { steamApps };
+        std::vector<fs::path> eachSteamApps = {steamApps};
 
         // check if there are any additional steam library folders and search through them as well
         std::ifstream file(steamApps / "libraryfolders.vdf");
@@ -64,7 +63,7 @@ namespace ehb
 
             for (const auto& entry : root.attribs)
             {
-                const std::string& key = entry.first, & value = entry.second;
+                const std::string &key = entry.first, &value = entry.second;
 
                 /*
                  * steam will list additional library folders starting from "1" like so:
@@ -96,4 +95,4 @@ namespace ehb
             }
         }
     }
-}
+} // namespace ehb

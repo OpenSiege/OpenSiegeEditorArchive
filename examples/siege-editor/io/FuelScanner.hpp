@@ -20,22 +20,20 @@
 
 #pragma once
 
+#include <cstring>
 #include <stack>
 #include <string>
-#include <cstring>
 
 namespace ehb
 {
     class FuelScanner
     {
     public:
+        FuelScanner(const char* content);
 
-        FuelScanner(const char * content);
-
-        int scan(std::string * yylval);
+        int scan(std::string* yylval);
 
     private:
-
         enum
         {
             embedded_statement,
@@ -44,17 +42,17 @@ namespace ehb
         };
 
     private:
-
         std::stack<int> state;
 
-        const char * content;
-        const char * cursor;
-        const char * limit;
-        const char * marker;
+        const char* content;
+        const char* cursor;
+        const char* limit;
+        const char* marker;
     };
 
-    inline FuelScanner::FuelScanner(const char * content) : content(content), cursor(content)
+    inline FuelScanner::FuelScanner(const char* content) :
+        content(content), cursor(content)
     {
         limit = content + strlen(content);
     }
-}
+} // namespace ehb

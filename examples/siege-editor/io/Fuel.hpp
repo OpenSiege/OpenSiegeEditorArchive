@@ -21,9 +21,9 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 #include <vector>
-#include <array>
 #include <vsg/maths/vec3.h>
 #include <vsg/maths/vec4.h>
 //#include "SiegeRot.hpp"
@@ -42,123 +42,120 @@ namespace ehb
     // main element to make use of in this api
     class FuelBlock
     {
-        public:
+    public:
+        ~FuelBlock();
 
-           ~FuelBlock();
+        FuelBlock* parent() const;
 
-            FuelBlock * parent() const;
+        const std::string& name() const;
+        const std::string& type() const;
 
-            const std::string & name () const;
-            const std::string & type () const;
+        //! @return whether this node has no child nodes and attributes or not
+        bool isEmpty() const;
 
-            //! @return whether this node has no child nodes and attributes or not
-            bool isEmpty() const;
-
-            /**
+        /**
              * @param name the full name of the new node to create
              * @param type the type of the new node to create
              * @return the newly created child node
              */
-            FuelBlock * appendChild(const std::string & name);
-            FuelBlock * appendChild(const std::string & name, const std::string & type);
+        FuelBlock* appendChild(const std::string& name);
+        FuelBlock* appendChild(const std::string& name, const std::string& type);
 
-            FuelBlock * child(const std::string & name) const;
+        FuelBlock* child(const std::string& name) const;
 
-            const std::vector<FuelBlock *> & eachChild() const;
-            const std::vector<FuelBlock *> & eachChildOf(const std::string & name) const;
+        const std::vector<FuelBlock*>& eachChild() const;
+        const std::vector<FuelBlock*>& eachChildOf(const std::string& name) const;
 
-            bool hasAttr(const std::string & name) const;
+        bool hasAttr(const std::string& name) const;
 
-            // TODO: rename eachAttribute to eachAttr
-            const std::vector<Attribute> & eachAttribute() const;
-            const std::vector<Attribute> & eachAttrOf(const std::string & name) const;
+        // TODO: rename eachAttribute to eachAttr
+        const std::vector<Attribute>& eachAttribute() const;
+        const std::vector<Attribute>& eachAttrOf(const std::string& name) const;
 
-            void appendValue(const std::string & name, const std::string & value);
-            void appendValue(const std::string & name, const std::string & type, const std::string & value);
+        void appendValue(const std::string& name, const std::string& value);
+        void appendValue(const std::string& name, const std::string& type, const std::string& value);
 
-            //! @return the number of attributes in this node
-            unsigned int valueCount() const;
+        //! @return the number of attributes in this node
+        unsigned int valueCount() const;
 
-            /**
+        /**
              * @param name which attribute type or value to return
              * @param defaultValue the value to return if the attribute does not exist
              * @return the attribute type or value
              */
-            const std::string & valueOf(const std::string & name, const std::string & defaultValue = "") const;
-            const std::string & typeOf(const std::string & name, const std::string & defaultValue = "") const;
+        const std::string& valueOf(const std::string& name, const std::string& defaultValue = "") const;
+        const std::string& typeOf(const std::string& name, const std::string& defaultValue = "") const;
 
-            /**
+        /**
              * @param index which attribute name, type, or value to return ranging from 0 to valueCount()
              * @param defaultValue the value to return if the attribute does not exist
              * @return the attribute name, type, or value
              */
-            const std::string & nameOf(unsigned int index, const std::string & defaultValue = "") const;
-            const std::string & typeOf(unsigned int index, const std::string & defaultValue = "") const;
-            const std::string & valueOf(unsigned int index, const std::string & defaultValue = "") const;
+        const std::string& nameOf(unsigned int index, const std::string& defaultValue = "") const;
+        const std::string& typeOf(unsigned int index, const std::string& defaultValue = "") const;
+        const std::string& valueOf(unsigned int index, const std::string& defaultValue = "") const;
 
-            /**
+        /**
              * @param name which attribute value to return
              * @param defaultValue the value to return if the attribute does not exist or cannot be coerced to the desired type
              * @return the attribute value interpreted as the desired type
              */
-            bool valueAsBool(const std::string & name, bool defaultValue = false) const;
-            int valueAsInt(const std::string & name, int defaultValue = 0) const;
-            unsigned int valueAsUInt(const std::string & name, unsigned int defaultValue = 0) const;
-            float valueAsFloat(const std::string & name, float defaultValue = 0.f) const;
-            std::string valueAsString(const std::string & name, const std::string & defaultValue = "") const;
+        bool valueAsBool(const std::string& name, bool defaultValue = false) const;
+        int valueAsInt(const std::string& name, int defaultValue = 0) const;
+        unsigned int valueAsUInt(const std::string& name, unsigned int defaultValue = 0) const;
+        float valueAsFloat(const std::string& name, float defaultValue = 0.f) const;
+        std::string valueAsString(const std::string& name, const std::string& defaultValue = "") const;
 
-            // extra types...
-            std::array<float, 3> valueAsFloat3(const std::string & name, const std::array<float, 3> defaultValue = { 1.0, 1.0, 1.0 }) const;
-            vsg::vec3 valueAsVec3(const std::string & name, const vsg::vec3& defaultValue = { 1.0, 1.0, 1.0 }) const; // don't use 1.f as vsg::vec3 could be doubles
-            vsg::vec4 valueAsColor(const std::string & name, const vsg::vec4 & defaultValue = { 1.f, 1.f, 1.f, 1.f }) const;
-            //SiegeRot valueAsSiegeRot(const std::string & name, const SiegeRot & defaultValue = { 0.0, 0.0, 0.0, 0.0, 0}) const;
-            //SiegePos valueAsSiegePos(const std::string & name, const SiegePos & defaultValue = { 0.0, 0.0, 0.0, 0 }) const;
+        // extra types...
+        std::array<float, 3> valueAsFloat3(const std::string& name, const std::array<float, 3> defaultValue = {1.0, 1.0, 1.0}) const;
+        vsg::vec3 valueAsVec3(const std::string& name, const vsg::vec3& defaultValue = {1.0, 1.0, 1.0}) const; // don't use 1.f as vsg::vec3 could be doubles
+        vsg::vec4 valueAsColor(const std::string& name, const vsg::vec4& defaultValue = {1.f, 1.f, 1.f, 1.f}) const;
+        //SiegeRot valueAsSiegeRot(const std::string & name, const SiegeRot & defaultValue = { 0.0, 0.0, 0.0, 0.0, 0}) const;
+        //SiegePos valueAsSiegePos(const std::string & name, const SiegePos & defaultValue = { 0.0, 0.0, 0.0, 0 }) const;
 
-            //! create a deep copy of the node that must be deleted by the user
-            FuelBlock * clone(FuelBlock * parent = nullptr) const;
+        //! create a deep copy of the node that must be deleted by the user
+        FuelBlock* clone(FuelBlock* parent = nullptr) const;
 
-            /**
+        /**
              * merge the contents of this node into the result node
              * NOTE: empty children from this node will entirely overwrite
              * (including all attributes and grand children nodes) children of
              * the same name in the result node
              */
-            void merge(FuelBlock * result) const;
+        void merge(FuelBlock* result) const;
 
-            void write(std::ostream & stream) const;
+        void write(std::ostream& stream) const;
 
-        protected:
+    protected:
+        FuelBlock(FuelBlock* parent = nullptr);
 
-            FuelBlock(FuelBlock * parent = nullptr);
+    private:
+        const Attribute* attribute(const std::string& name) const;
 
-        private:
-
-            const Attribute * attribute(const std::string & name) const;
-
-        private:
-
-            std::string mName;
-            std::string mType;
-            FuelBlock * mParent;
-            std::vector<FuelBlock *> mChildren;
-            std::vector<Attribute> mAttributes;
+    private:
+        std::string mName;
+        std::string mType;
+        FuelBlock* mParent;
+        std::vector<FuelBlock*> mChildren;
+        std::vector<Attribute> mAttributes;
     };
 
-    inline FuelBlock::FuelBlock(FuelBlock * parent) : mParent(parent)
+    inline FuelBlock::FuelBlock(FuelBlock* parent) :
+        mParent(parent)
     {
     }
 
-    inline FuelBlock * FuelBlock::parent() const
+    inline FuelBlock* FuelBlock::parent() const
     {
         return mParent;
     }
 
-    inline const std::string & FuelBlock::name () const
+    inline const std::string& FuelBlock::name() const
     {
         return mName;
     }
 
-    inline const std::string & FuelBlock::type () const
+    inline const std::string& FuelBlock::type() const
     {
         return mType;
     }
@@ -168,14 +165,14 @@ namespace ehb
         return mChildren.empty() && mAttributes.empty();
     }
 
-    inline const std::vector<FuelBlock *> & FuelBlock::eachChild() const
+    inline const std::vector<FuelBlock*>& FuelBlock::eachChild() const
     {
         return mChildren;
     }
 
-    inline bool FuelBlock::hasAttr(const std::string & name) const
+    inline bool FuelBlock::hasAttr(const std::string& name) const
     {
-        for (const Attribute & attr : mAttributes)
+        for (const Attribute& attr : mAttributes)
         {
             if (attr.name == name)
             {
@@ -186,12 +183,12 @@ namespace ehb
         return false;
     }
 
-    inline const std::vector<Attribute> & FuelBlock::eachAttribute() const
+    inline const std::vector<Attribute>& FuelBlock::eachAttribute() const
     {
         return mAttributes;
     }
 
-    inline void FuelBlock::appendValue(const std::string & name, const std::string & value)
+    inline void FuelBlock::appendValue(const std::string& name, const std::string& value)
     {
         appendValue(name, "", value);
     }
@@ -202,9 +199,9 @@ namespace ehb
         return static_cast<unsigned int>(mAttributes.size());
     }
 
-    inline const std::string & FuelBlock::valueOf(const std::string & name, const std::string & defaultValue) const
+    inline const std::string& FuelBlock::valueOf(const std::string& name, const std::string& defaultValue) const
     {
-        if (const Attribute * attr = attribute(name))
+        if (const Attribute* attr = attribute(name))
         {
             return attr->value;
         }
@@ -212,9 +209,9 @@ namespace ehb
         return defaultValue;
     }
 
-    inline const std::string & FuelBlock::typeOf(const std::string & name, const std::string & defaultValue) const
+    inline const std::string& FuelBlock::typeOf(const std::string& name, const std::string& defaultValue) const
     {
-        if (const Attribute * attr = attribute(name))
+        if (const Attribute* attr = attribute(name))
         {
             return attr->type;
         }
@@ -222,7 +219,7 @@ namespace ehb
         return defaultValue;
     }
 
-    inline const std::string & FuelBlock::nameOf(unsigned int index, const std::string & defaultValue) const
+    inline const std::string& FuelBlock::nameOf(unsigned int index, const std::string& defaultValue) const
     {
         if (index < mAttributes.size())
         {
@@ -232,7 +229,7 @@ namespace ehb
         return defaultValue;
     }
 
-    inline const std::string & FuelBlock::typeOf(unsigned int index, const std::string & defaultValue) const
+    inline const std::string& FuelBlock::typeOf(unsigned int index, const std::string& defaultValue) const
     {
         if (index < mAttributes.size())
         {
@@ -242,7 +239,7 @@ namespace ehb
         return defaultValue;
     }
 
-    inline const std::string & FuelBlock::valueOf(unsigned int index, const std::string & defaultValue) const
+    inline const std::string& FuelBlock::valueOf(unsigned int index, const std::string& defaultValue) const
     {
         if (index < mAttributes.size())
         {
@@ -254,13 +251,11 @@ namespace ehb
 
     class Fuel : public FuelBlock
     {
-        public:
+    public:
+        bool load(std::istream& stream);
+        bool load(const std::string& filename);
 
-            bool load(std::istream & stream);
-            bool load(const std::string & filename);
-
-            bool save(std::ostream & stream) const;
-            bool save(const std::string & filename) const;
-
+        bool save(std::ostream& stream) const;
+        bool save(const std::string& filename) const;
     };
-}
+} // namespace ehb

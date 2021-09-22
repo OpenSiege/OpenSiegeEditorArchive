@@ -2,9 +2,9 @@
 #include "LocalFileSys.hpp"
 #include "cfg/IConfig.hpp"
 
-#include <iostream>
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 #include <memory>
 
 namespace ehb
@@ -16,7 +16,7 @@ namespace ehb
         bitsDir = config.getString("bits");
     }
 
-    InputStream LocalFileSys::createInputStream(const std::string & filename_)
+    InputStream LocalFileSys::createInputStream(const std::string& filename_)
     {
         if (bitsDir.empty())
         {
@@ -46,9 +46,9 @@ namespace ehb
 
         try
         {
-            for (auto & itr : fs::recursive_directory_iterator(bitsDir))
+            for (auto& itr : fs::recursive_directory_iterator(bitsDir))
             {
-                const auto & filename = itr.path();
+                const auto& filename = itr.path();
 
                 if (fs::is_directory(filename) || fs::is_regular_file(filename))
                 {
@@ -57,7 +57,7 @@ namespace ehb
                 }
             }
         }
-        catch (std::exception & e)
+        catch (std::exception& e)
         {
             log->warn("LocalFileSys::getFiles(): {}", e.what());
         }
@@ -65,7 +65,7 @@ namespace ehb
         return result;
     }
 
-    FileList LocalFileSys::getDirectoryContents(const std::string & directory_) const
+    FileList LocalFileSys::getDirectoryContents(const std::string& directory_) const
     {
         std::string directory = convertToLowerCase(directory_);
         if (directory.front() == '/' || directory.front() == '\\')
@@ -77,9 +77,9 @@ namespace ehb
 
         try
         {
-            for (auto & itr : fs::directory_iterator(bitsDir / directory))
+            for (auto& itr : fs::directory_iterator(bitsDir / directory))
             {
-                const auto & filename = itr.path();
+                const auto& filename = itr.path();
 
                 if (fs::is_directory(filename) || fs::is_regular_file(filename))
                 {
@@ -88,11 +88,11 @@ namespace ehb
                 }
             }
         }
-        catch (std::exception & e)
+        catch (std::exception& e)
         {
             log->warn("LocalFileSys::getDirectoryContents({}): {}", directory, e.what());
         }
 
         return result;
     }
-}
+} // namespace ehb

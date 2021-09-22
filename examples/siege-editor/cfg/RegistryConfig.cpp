@@ -2,30 +2,29 @@
 #include "WritableConfig.hpp"
 
 #ifdef WIN32
-    #include <windows.h>
-    #include <shlobj.h>
+#    include <shlobj.h>
+#    include <windows.h>
 #else
-    #include <minIni.h>
+#    include <minIni.h>
 #endif
 
 namespace ehb
 {
-    constexpr const char * registryKeyVec[] =
-    {
-        "Software\\Wow6432Node\\Microsoft\\Microsoft Games\\Dungeon Siege Legends of Aranna\\1.0",
-        "Software\\Wow6432Node\\Microsoft\\Microsoft Games\\DungeonSiege\\1.0",
-        "Software\\Wow6432Node\\Microsoft\\Microsoft Games\\DungeonSiegeDemo\\1.0",
-        "Software\\Microsoft\\Microsoft Games\\Dungeon Siege Legends of Aranna\\1.0",
-        "Software\\Microsoft\\Microsoft Games\\DungeonSiege\\1.0",
-        "Software\\Microsoft\\Microsoft Games\\DungeonSiegeDemo\\1.0"
-    };
+    constexpr const char* registryKeyVec[] =
+        {
+            "Software\\Wow6432Node\\Microsoft\\Microsoft Games\\Dungeon Siege Legends of Aranna\\1.0",
+            "Software\\Wow6432Node\\Microsoft\\Microsoft Games\\DungeonSiege\\1.0",
+            "Software\\Wow6432Node\\Microsoft\\Microsoft Games\\DungeonSiegeDemo\\1.0",
+            "Software\\Microsoft\\Microsoft Games\\Dungeon Siege Legends of Aranna\\1.0",
+            "Software\\Microsoft\\Microsoft Games\\DungeonSiege\\1.0",
+            "Software\\Microsoft\\Microsoft Games\\DungeonSiegeDemo\\1.0"};
 
     // TODO: make an IConfigSrc class
     // TODO: convert this into an implementation of the IConfigSrc class
 #ifdef WIN32
-    void registryConfig(WritableConfig & config)
+    void registryConfig(WritableConfig& config)
     {
-        for (const char * key : registryKeyVec)
+        for (const char* key : registryKeyVec)
         {
             // http://stackoverflow.com/questions/34065/how-to-read-a-value-from-the-windows-registry
             if (HKEY hKey; RegOpenKeyEx(HKEY_LOCAL_MACHINE, key, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
@@ -43,9 +42,9 @@ namespace ehb
         }
     }
 #else
-    void registryConfig(WritableConfig & config)
+    void registryConfig(WritableConfig& config)
     {
-        if (const char * envVar = std::getenv("WINEPREFIX"))
+        if (const char* envVar = std::getenv("WINEPREFIX"))
         {
             const fs::path system = fs::path(envVar) / "system.reg";
 
@@ -102,4 +101,4 @@ namespace ehb
         }
     }
 #endif
-}
+} // namespace ehb

@@ -1,19 +1,19 @@
 
 #pragma once
 
-#include <functional>
+#include "Fuel.hpp"
 #include <algorithm>
+#include <functional>
 #include <istream>
 #include <memory>
 #include <set>
 #include <string>
-#include "Fuel.hpp"
 
 #ifdef WIN32
-#include <filesystem>
+#    include <filesystem>
 namespace fs = std::filesystem;
 #else
-#include <experimental/filesystem>
+#    include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 #endif
 
@@ -26,15 +26,14 @@ namespace ehb
     class IFileSys
     {
     public:
-
         virtual ~IFileSys() = default;
 
         virtual void init(IConfig& config) = 0;
 
-        virtual InputStream createInputStream(const std::string & filename) = 0;
+        virtual InputStream createInputStream(const std::string& filename) = 0;
 
         virtual FileList getFiles() const = 0;
-        virtual FileList getDirectoryContents(const std::string & directory) const = 0;
+        virtual FileList getDirectoryContents(const std::string& directory) const = 0;
 
         void eachGasFile(const std::string& directory, std::function<void(const std::string&, std::unique_ptr<Fuel>)> func);
     };
@@ -93,4 +92,4 @@ namespace ehb
             }
         }
     }
-}
+} // namespace ehb

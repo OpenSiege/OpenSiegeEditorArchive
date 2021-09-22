@@ -8,14 +8,14 @@
 
 namespace ehb
 {
-    ReaderWriterSiegeNodeList::ReaderWriterSiegeNodeList(IFileSys& fileSys, FileNameMap& fileNameMap) : fileSys(fileSys), fileNameMap(fileNameMap)
+    ReaderWriterSiegeNodeList::ReaderWriterSiegeNodeList(IFileSys& fileSys, FileNameMap& fileNameMap) :
+        fileSys(fileSys), fileNameMap(fileNameMap)
     {
         log = spdlog::get("log");
 
         static const std::string directory = "/world/global/siege_nodes";
 
-        fileSys.eachGasFile(directory, [this](const std::string& filename, auto doc)
-        {
+        fileSys.eachGasFile(directory, [this](const std::string& filename, auto doc) {
             for (auto root : doc->eachChild())
             {
                 for (auto node : root->eachChild())
@@ -145,8 +145,7 @@ namespace ehb
 
             std::function<void(const uint32_t)> func;
 
-            func = [&func, &doorMap, &nodeMap, &completeSet](const uint32_t guid)
-            {
+            func = [&func, &doorMap, &nodeMap, &completeSet](const uint32_t guid) {
                 if (completeSet.insert(guid).second)
                 {
                     auto targetNode = nodeMap[guid];
@@ -172,29 +171,30 @@ namespace ehb
 
             func(targetGuid);
 
-
-
 #if 1
             // loop all the nodes loaded
             for (auto const& [nodeGuid, xform] : nodeMap)
             {
-                std::string mapName; xform->children[0]->getValue("name", mapName);
-                uint32_t guid; xform->getValue("guid", guid);
+                std::string mapName;
+                xform->children[0]->getValue("name", mapName);
+                uint32_t guid;
+                xform->getValue("guid", guid);
 
                 // now find a matching node from the first pass and the unique nodes
                 for (auto const& mesh : uniqueMeshes)
                 {
-                    std::string name; mesh->getValue("name", name);
+                    std::string name;
+                    mesh->getValue("name", name);
                     if (mapName == name)
                     {
                         // now store the instance information
                         mesh->getObject<InstanceData>("InstanceData")->matrices.emplace_back(xform->matrix);
-                        
+
                         vsg::vec4 tmpPos(xform->matrix[3]);
                         vsg::dquat quat;
                         auto m = xform->matrix;
 
-#if 0
+#    if 0
                         auto fourXSquaredMinus1 = xform->matrix[0][0] - xform->matrix[1][1] - xform->matrix[2][2];
                         auto fourYSquaredMinus1 = xform->matrix[1][1] - xform->matrix[0][0] - xform->matrix[2][2];
                         auto fourZSquaredMinus1 = xform->matrix[2][2] - xform->matrix[0][0] - xform->matrix[1][1];
@@ -240,7 +240,7 @@ namespace ehb
                         default: // Silence a -Wswitch-default warning in GCC. Should never actually get here. Assert is just for sanity.
                             assert(false);
                         }
-#endif
+#    endif
 
                         // https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
                         double tr = m[0][0] + m[1][1] + m[2][2];
@@ -251,7 +251,7 @@ namespace ehb
                         }
                         else if ((m[0][0] > m[1][1]) && (m[0][0] > m[2][2]))
                         {
-                            double S = sqrt(1.0 + m[0][0] - m[1][1] - m[2][2]) * 2; // S=4*qx 
+                            double S = sqrt(1.0 + m[0][0] - m[1][1] - m[2][2]) * 2; // S=4*qx
                             quat.set(0.25 * S, (m[0][1] + m[1][0]) / S, (m[0][2] + m[2][0]) / S, (m[2][1] - m[1][2]) / S);
                         }
                         else if (m[1][1] > m[2][2])
@@ -270,19 +270,19 @@ namespace ehb
                         // matrix = translate(cp.position) * scale(cp.scale) * mat4_cast(cp.rotation);
 
                         vsg::dvec3 yup(tmpPos[0], tmpPos[1], tmpPos[2]);
-                        mesh->getObject<InstanceData>("InstanceData")->shader.emplace_back(InstanceData::Data{ vsg::dvec3(tmpPos[0], tmpPos[1], tmpPos[2]), quat });
+                        mesh->getObject<InstanceData>("InstanceData")->shader.emplace_back(InstanceData::Data{vsg::dvec3(tmpPos[0], tmpPos[1], tmpPos[2]), quat});
 
                         //mesh->getObject<InstanceData>("InstanceData")->data.push_back(yup);
 
                         int foo = 55;
                     }
-                    
-                }   
+                }
             }
 
             for (auto const& mesh : uniqueMeshes)
             {
-                std::string name; mesh->getValue("name", name);
+                std::string name;
+                mesh->getValue("name", name);
                 // log->info("{} has {} instances", name, mesh->getObject<InstanceData>("InstanceData")->matrices.size());
             }
 #endif
@@ -293,4 +293,4 @@ namespace ehb
 
         return vsg::ref_ptr<vsg::Object>();
     };
-}
+} // namespace ehb

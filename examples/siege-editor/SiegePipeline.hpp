@@ -4,11 +4,11 @@
 #include <string>
 
 #include <vsg/io/Options.h>
-#include <vsg/state/PipelineLayout.h>
 #include <vsg/state/GraphicsPipeline.h>
+#include <vsg/state/PipelineLayout.h>
 
-#include "io/LocalFileSys.hpp"
 #include "io/FileNameMap.hpp"
+#include "io/LocalFileSys.hpp"
 
 namespace ehb
 {
@@ -22,7 +22,6 @@ namespace ehb
     class SiegeNodePipeline
     {
     public:
-
         static void SetupPipeline();
 
         inline static vsg::ref_ptr<vsg::PipelineLayout> PipelineLayout;
@@ -33,8 +32,8 @@ namespace ehb
     class Systems
     {
     public:
-
-        Systems(WritableConfig& config) : config(config) {}
+        Systems(WritableConfig& config) :
+            config(config) {}
 
         void init();
 
@@ -44,4 +43,4 @@ namespace ehb
 
         vsg::ref_ptr<vsg::Options> options = vsg::Options::create();
     };
-}
+} // namespace ehb

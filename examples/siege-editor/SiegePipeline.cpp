@@ -1,17 +1,17 @@
 
 #include "SiegePipeline.hpp"
 
-#include <vsg/all.h>
 #include <spdlog/spdlog.h>
+#include <vsg/all.h>
 
-#include "io/IFileSys.hpp"
-#include "io/FileNameMap.hpp"
 #include "cfg/WritableConfig.hpp"
+#include "io/FileNameMap.hpp"
+#include "io/IFileSys.hpp"
 
 #include "vsg/ReaderWriterRAW.hpp"
+#include "vsg/ReaderWriterRegion.hpp"
 #include "vsg/ReaderWriterSNO.hpp"
 #include "vsg/ReaderWriterSiegeNodeList.hpp"
-#include "vsg/ReaderWriterRegion.hpp"
 
 namespace ehb
 {
@@ -62,15 +62,15 @@ void main() {
 
         options->readerWriters = {
 
-        ReaderWriterRAW::create(fileSys, fileNameMap),
-                      ReaderWriterSNO::create(fileSys, fileNameMap),
-                      ReaderWriterSiegeNodeList::create(fileSys, fileNameMap),
-                      ReaderWriterRegion::create(fileSys, fileNameMap)
+            ReaderWriterRAW::create(fileSys, fileNameMap),
+            ReaderWriterSNO::create(fileSys, fileNameMap),
+            ReaderWriterSiegeNodeList::create(fileSys, fileNameMap),
+            ReaderWriterRegion::create(fileSys, fileNameMap)
 
         };
 
         SiegeNodePipeline::SetupPipeline();
-        
+
         // we currently have two ways to access this variable
         // the first is via options that get passed around
         // the second is via the static variable - which should only be accessed and not written to so should be thread safe?
@@ -90,44 +90,38 @@ void main() {
         }
 
         // set up graphics pipeline
-        vsg::DescriptorSetLayoutBindings descriptorBindings
-        {
+        vsg::DescriptorSetLayoutBindings descriptorBindings{
             {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr} // { binding, descriptorTpe, descriptorCount, stageFlags, pImmutableSamplers}
         };
 
-        vsg::DescriptorSetLayouts descriptorSetLayouts{ vsg::DescriptorSetLayout::create(descriptorBindings) };
+        vsg::DescriptorSetLayouts descriptorSetLayouts{vsg::DescriptorSetLayout::create(descriptorBindings)};
 
-        vsg::PushConstantRanges pushConstantRanges
-        {
+        vsg::PushConstantRanges pushConstantRanges{
             {VK_SHADER_STAGE_VERTEX_BIT, 0, 128} // projection view, and model matrices, actual push constant calls automatically provided by the VSG's DispatchTraversal
         };
 
-        vsg::VertexInputState::Bindings vertexBindingsDescriptions
-        {
+        vsg::VertexInputState::Bindings vertexBindingsDescriptions{
             VkVertexInputBindingDescription{0, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX}, // vertex data
             VkVertexInputBindingDescription{1, sizeof(vsg::vec3), VK_VERTEX_INPUT_RATE_VERTEX}, // colour data
             VkVertexInputBindingDescription{2, sizeof(vsg::vec2), VK_VERTEX_INPUT_RATE_VERTEX}  // tex coord data
         };
 
-        vsg::VertexInputState::Attributes vertexAttributeDescriptions
-        {
+        vsg::VertexInputState::Attributes vertexAttributeDescriptions{
             VkVertexInputAttributeDescription{0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0}, // vertex data
             VkVertexInputAttributeDescription{1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0}, // colour data
             VkVertexInputAttributeDescription{2, 2, VK_FORMAT_R32G32_SFLOAT, 0},    // tex coord data
         };
 
-        vsg::GraphicsPipelineStates pipelineStates
-        {
+        vsg::GraphicsPipelineStates pipelineStates{
             vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
             vsg::InputAssemblyState::create(),
             vsg::RasterizationState::create(),
             vsg::MultisampleState::create(),
             vsg::ColorBlendState::create(),
-            vsg::DepthStencilState::create()
-        };
+            vsg::DepthStencilState::create()};
 
         PipelineLayout = vsg::PipelineLayout::create(descriptorSetLayouts, pushConstantRanges);
-        GraphicsPipeline = vsg::GraphicsPipeline::create(PipelineLayout, vsg::ShaderStages{ vertexShader, fragmentShader }, pipelineStates);
+        GraphicsPipeline = vsg::GraphicsPipeline::create(PipelineLayout, vsg::ShaderStages{vertexShader, fragmentShader}, pipelineStates);
         BindGraphicsPipeline = vsg::BindGraphicsPipeline::create(GraphicsPipeline);
     }
-}
+} // namespace ehb

@@ -15,7 +15,7 @@ macro(add_target_clang_format)
             list(REMOVE_ITEM FILES_TO_FORMAT ${EXCLUDE})
         endforeach()
         add_custom_target(clang-format-editor
-            COMMAND ${CLANGFORMAT} ${FILES_TO_FORMAT}
+            COMMAND ${CLANGFORMAT} -i ${FILES_TO_FORMAT}
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
             COMMENT "Automated code format using clang-format"
         )
@@ -59,14 +59,14 @@ target_link_libraries(siege-editor vsgQt)
 
 add_target_clang_format(
     FILES
-        ${CMAKE_SOURCE_DIR}/cfg/*.hpp
-        ${CMAKE_SOURCE_DIR}/cfg/*.cpp
-        ${CMAKE_SOURCE_DIR}/io/*.hpp
-        ${CMAKE_SOURCE_DIR}/io/*.cpp
-        ${CMAKE_SOURCE_DIR}/vsg/*.hpp
-        ${CMAKE_SOURCE_DIR}/vsg/*.cpp
-        ${CMAKE_SOURCE_DIR}/*.hpp
-        ${CMAKE_SOURCE_DIR}/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/cfg/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/cfg/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/vsg/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/vsg/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
 )
 
 if(MSVC)

@@ -1,23 +1,23 @@
 
 #include "FileNameMap.hpp"
 
+#include "IFileSys.hpp"
 #include <algorithm>
 #include <sstream>
-#include "IFileSys.hpp"
 
 namespace ehb
 {
     // TODO: no really, make a real nnk parser
-    static std::string trim(const std::string & str)
+    static std::string trim(const std::string& str)
     {
         if (!str.size()) return str;
-        std::string::size_type first = str.find_first_not_of( " \t" );
-        std::string::size_type last = str.find_last_not_of( "  \t\r\n" );
-        if ((first==str.npos) || (last==str.npos)) return std::string( "" );
-        return str.substr( first, last-first+1 );
+        std::string::size_type first = str.find_first_not_of(" \t");
+        std::string::size_type last = str.find_last_not_of("  \t\r\n");
+        if ((first == str.npos) || (last == str.npos)) return std::string("");
+        return str.substr(first, last - first + 1);
     }
 
-    static void parseTree(std::unordered_map<std::string, std::string> & namingKeyMap, std::istream & stream)
+    static void parseTree(std::unordered_map<std::string, std::string>& namingKeyMap, std::istream& stream)
     {
         for (std::string line; std::getline(stream, line);)
         {
@@ -61,7 +61,8 @@ namespace ehb
                     {
                         auto itr = namingKeyMap.find(key.substr(0, index));
 
-                        if (itr != namingKeyMap.end()) {
+                        if (itr != namingKeyMap.end())
+                        {
 
                             fullFileName += itr->second;
                             fullFileName += value;
@@ -100,11 +101,11 @@ namespace ehb
         }
     }
 
-    void FileNameMap::init(IFileSys & fileSys)
+    void FileNameMap::init(IFileSys& fileSys)
     {
         std::set<std::string> std, ext;
 
-        for (const auto & filename : fileSys.getDirectoryContents("/art"))
+        for (const auto& filename : fileSys.getDirectoryContents("/art"))
         {
             if (getLowerCaseFileExtension(filename) == ".nnk")
             {
@@ -135,7 +136,7 @@ namespace ehb
             eachFileName.push_back(*itr);
         }
 
-        for (const std::string & filename : eachFileName)
+        for (const std::string& filename : eachFileName)
         {
             std::stringstream stream;
 
@@ -147,7 +148,7 @@ namespace ehb
         }
     }
 
-    std::string ehb::FileNameMap::findDataFile(const std::string & filename)
+    std::string ehb::FileNameMap::findDataFile(const std::string& filename)
     {
         std::string actualFileName = filename;
 
@@ -182,4 +183,4 @@ namespace ehb
 
         return actualFileName;
     }
-}
+} // namespace ehb

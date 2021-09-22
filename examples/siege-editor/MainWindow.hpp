@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include <QMainWindow>
 #include "ui_editor.h"
+#include <QMainWindow>
 
 #include <vsg/io/Options.h>
 #include <vsg/nodes/Group.h>
@@ -18,13 +18,11 @@ namespace ehb
     class MainWindow : public QMainWindow
     {
     public:
-
         MainWindow(Systems& systems, QWidget* parent = nullptr);
 
         virtual ~MainWindow() = default;
 
     private:
-
         Ui::MainWindow ui;
 
         Systems& systems;
@@ -37,4 +35,4 @@ namespace ehb
 
         void currentChanged(const QModelIndex& current, const QModelIndex& previous);
     };
-}
+} // namespace ehb

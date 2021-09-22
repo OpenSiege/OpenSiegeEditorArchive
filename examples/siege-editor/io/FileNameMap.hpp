@@ -13,7 +13,6 @@ namespace ehb
     class FileNameMap
     {
     public:
-
         FileNameMap() = default;
         virtual ~FileNameMap() = default;
 
@@ -23,7 +22,6 @@ namespace ehb
         std::string findDataFile(const std::string& filename);
 
     private:
-
         std::unordered_map<std::string, std::string> keyMap;
     };
-}
+} // namespace ehb

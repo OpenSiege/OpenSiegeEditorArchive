@@ -1,12 +1,12 @@
 
-#include <vsg/utils/CommandLine.h>
 #include "WritableConfig.hpp"
+#include <vsg/utils/CommandLine.h>
 
 namespace ehb
 {
     // TODO: make an IConfigSrc class
     // TODO: convert this into an implementation of the IConfigSrc class
-    void argsConfig(WritableConfig & config, int argc, char * argv[])
+    void argsConfig(WritableConfig& config, int argc, char* argv[])
     {
         vsg::CommandLine args(&argc, argv);
 
@@ -18,9 +18,9 @@ namespace ehb
             if (args.read("--sound", value)) config.setBool("sound", value);
             if (args.read("--textures", value)) config.setBool("drawtextures", value);
         }
-        { // parse all float values from the command line
-        }
-        { // parse all integer values from the command line
+        {
+            // parse all float values from the command line
+        } { // parse all integer values from the command line
             int value;
 
             if (args.read("--bpp", value)) config.setInt("bpp", value);
@@ -40,4 +40,4 @@ namespace ehb
             if (args.read("--state", value)) config.setString("state", value);
         }
     }
-}
+} // namespace ehb

@@ -21,15 +21,15 @@
 
 #include "Fuel.hpp"
 
-#include <fstream>
-#include <sstream>
-#include <cctype>
 #include "FuelParser.hpp"
 #include "FuelScanner.hpp"
+#include <cctype>
+#include <fstream>
+#include <sstream>
 
 namespace ehb
 {
-    static std::vector<std::string> split(const std::string & value, char delim)
+    static std::vector<std::string> split(const std::string& value, char delim)
     {
         std::vector<std::string> result;
 
@@ -46,25 +46,25 @@ namespace ehb
         return result;
     }
 
-    static bool stringEqual(const std::string & str1, const std::string & str2)
+    static bool stringEqual(const std::string& str1, const std::string& str2)
     {
-        return ( (str1.size() == str2.size() ) &&
-                std::equal(str1.begin(), str1.end(), str2.begin(), [](const char & c1, const char & c2) {
+        return ((str1.size() == str2.size()) &&
+                std::equal(str1.begin(), str1.end(), str2.begin(), [](const char& c1, const char& c2) {
                     if (c1 == c2) return true;
                     if (std::toupper(c1) == std::toupper(c2)) return true;
                     return false;
-                }) );
+                }));
     }
 
     FuelBlock::~FuelBlock()
     {
-        for (FuelBlock * node : mChildren)
+        for (FuelBlock* node : mChildren)
         {
             delete node;
         }
     }
 
-    FuelBlock * FuelBlock::appendChild(const std::string & name)
+    FuelBlock* FuelBlock::appendChild(const std::string& name)
     {
         const auto index = name.find_last_of(':');
 
@@ -72,11 +72,11 @@ namespace ehb
         {
             const std::vector<std::string> path = split(name.substr(0, index), ':');
 
-            FuelBlock * parent = this;
+            FuelBlock* parent = this;
 
-            for (const std::string & item : path)
+            for (const std::string& item : path)
             {
-                FuelBlock * node = parent->child(item);
+                FuelBlock* node = parent->child(item);
 
                 if (!node)
                 {
@@ -91,7 +91,7 @@ namespace ehb
         else
         {
             // simply add a new child to this node with the given name
-            FuelBlock * node = new FuelBlock(this);
+            FuelBlock* node = new FuelBlock(this);
 
             node->mName = name;
 
@@ -101,16 +101,16 @@ namespace ehb
         }
     }
 
-    FuelBlock * FuelBlock::appendChild(const std::string & name, const std::string & type)
+    FuelBlock* FuelBlock::appendChild(const std::string& name, const std::string& type)
     {
-        FuelBlock * result = appendChild(name);
+        FuelBlock* result = appendChild(name);
 
         result->mType = type;
 
         return result;
     }
 
-    FuelBlock * FuelBlock::child(const std::string & name) const
+    FuelBlock* FuelBlock::child(const std::string& name) const
     {
         // TODO: cleanup the code here
 
@@ -118,59 +118,59 @@ namespace ehb
 
         switch (path.size())
         {
-            case 1:
+        case 1: {
+            for (FuelBlock* node : mChildren)
             {
-                for (FuelBlock * node : mChildren)
+                if (node->name() == name)
                 {
-                    if (node->name() == name)
-                    {
-                        return node;
-                    }
+                    return node;
                 }
-            } break;
+            }
+        }
+        break;
 
-            default:
+        default: {
+            const FuelBlock* cItr = this;
+            FuelBlock* finalAnswer = nullptr;
+
+            for (const std::string& item : path)
             {
-                const FuelBlock * cItr = this;
-                FuelBlock * finalAnswer = nullptr;
+                FuelBlock* result = nullptr;
 
-                for (const std::string & item : path)
+                for (FuelBlock* node : cItr->mChildren)
                 {
-                    FuelBlock * result = nullptr;
-
-                    for (FuelBlock * node : cItr->mChildren)
+                    if (node->name() == item)
                     {
-                        if (node->name() == item)
-                        {
-                            result = node;
-                            break;
-                        }
-                    }
-
-                    // did we find the node we're looking for?
-                    if (result)
-                    {
-                        cItr = result;
-                        finalAnswer = result;
-                    }
-                    else
-                    {
-                        return nullptr;
+                        result = node;
+                        break;
                     }
                 }
 
-                return finalAnswer;
-            } break;
+                // did we find the node we're looking for?
+                if (result)
+                {
+                    cItr = result;
+                    finalAnswer = result;
+                }
+                else
+                {
+                    return nullptr;
+                }
+            }
+
+            return finalAnswer;
+        }
+        break;
         }
 
         return nullptr;
     }
 
-    const std::vector<FuelBlock *> & FuelBlock::eachChildOf(const std::string & name) const
+    const std::vector<FuelBlock*>& FuelBlock::eachChildOf(const std::string& name) const
     {
-        static std::vector<FuelBlock *> emptyVector;
+        static std::vector<FuelBlock*> emptyVector;
 
-        if (FuelBlock * node = this->child(name))
+        if (FuelBlock* node = this->child(name))
         {
             return node->mChildren;
         }
@@ -178,11 +178,11 @@ namespace ehb
         return emptyVector;
     }
 
-    const std::vector<Attribute> & FuelBlock::eachAttrOf(const std::string & name) const
+    const std::vector<Attribute>& FuelBlock::eachAttrOf(const std::string& name) const
     {
         static std::vector<Attribute> empty;
 
-        if (FuelBlock * node = this->child(name))
+        if (FuelBlock* node = this->child(name))
         {
             return node->mAttributes;
         }
@@ -190,7 +190,7 @@ namespace ehb
         return empty;
     }
 
-    void FuelBlock::appendValue(const std::string & name, const std::string & type, const std::string & value)
+    void FuelBlock::appendValue(const std::string& name, const std::string& type, const std::string& value)
     {
         const auto index = name.find_last_of(':');
 
@@ -198,11 +198,11 @@ namespace ehb
         {
             const std::vector<std::string> path = split(name.substr(0, index), ':');
 
-            FuelBlock * parent = this;
+            FuelBlock* parent = this;
 
-            for (const std::string & item : path)
+            for (const std::string& item : path)
             {
-                FuelBlock * node = parent->child(item);
+                FuelBlock* node = parent->child(item);
 
                 if (!node)
                 {
@@ -226,9 +226,9 @@ namespace ehb
         }
     }
 
-    bool FuelBlock::valueAsBool(const std::string & name, bool defaultValue) const
+    bool FuelBlock::valueAsBool(const std::string& name, bool defaultValue) const
     {
-        if (const Attribute * attr = attribute(name))
+        if (const Attribute* attr = attribute(name))
         {
             return stringEqual(attr->value, "true");
         }
@@ -236,9 +236,9 @@ namespace ehb
         return defaultValue;
     }
 
-    int FuelBlock::valueAsInt(const std::string & name, int defaultValue) const
+    int FuelBlock::valueAsInt(const std::string& name, int defaultValue) const
     {
-        if (const Attribute * attr = attribute(name))
+        if (const Attribute* attr = attribute(name))
         {
             const int base = attr->type == "x" ? 16 : 10;
 
@@ -254,9 +254,9 @@ namespace ehb
         return defaultValue;
     }
 
-    unsigned int FuelBlock::valueAsUInt(const std::string & name, unsigned int defaultValue) const
+    unsigned int FuelBlock::valueAsUInt(const std::string& name, unsigned int defaultValue) const
     {
-        if (const Attribute * attr = attribute(name))
+        if (const Attribute* attr = attribute(name))
         {
             const int base = attr->type == "x" ? 16 : 10;
 
@@ -272,9 +272,9 @@ namespace ehb
         return defaultValue;
     }
 
-    float FuelBlock::valueAsFloat(const std::string & name, float defaultValue) const
+    float FuelBlock::valueAsFloat(const std::string& name, float defaultValue) const
     {
-        if (const Attribute * attr = attribute(name))
+        if (const Attribute* attr = attribute(name))
         {
             try
             {
@@ -288,9 +288,9 @@ namespace ehb
         return defaultValue;
     }
 
-    std::string FuelBlock::valueAsString(const std::string & name, const std::string & defaultValue) const
+    std::string FuelBlock::valueAsString(const std::string& name, const std::string& defaultValue) const
     {
-        if (const Attribute * attr = attribute(name))
+        if (const Attribute* attr = attribute(name))
         {
             if (attr->value.front() == '"' && attr->value.back() == '"')
             {
@@ -303,7 +303,7 @@ namespace ehb
 
     std::array<float, 3> FuelBlock::valueAsFloat3(const std::string& name, std::array<float, 3> defaultValue) const
     {
-        if (const Attribute * attr = attribute(name))
+        if (const Attribute* attr = attribute(name))
         {
             const std::string& value = valueOf(name);
 
@@ -320,7 +320,7 @@ namespace ehb
             float y = std::stof(value.substr(itr1 + 1, itr2 - itr1 - 1));
             float z = std::stof(value.substr(itr2 + 1, itr3 - itr2 - 1));
 
-            return std::array<float, 3> {x, y, z};
+            return std::array<float, 3>{x, y, z};
         }
 
         return defaultValue;
@@ -328,7 +328,7 @@ namespace ehb
 
     vsg::vec3 FuelBlock::valueAsVec3(const std::string& name, const vsg::vec3& defaultValue) const
     {
-        if (const Attribute * attr = attribute(name))
+        if (const Attribute* attr = attribute(name))
         {
             auto value = valueAsFloat3(name);
 
@@ -338,9 +338,9 @@ namespace ehb
         return defaultValue;
     }
 
-    vsg::vec4 FuelBlock::valueAsColor(const std::string & name, const vsg::vec4 & defaultValue) const
+    vsg::vec4 FuelBlock::valueAsColor(const std::string& name, const vsg::vec4& defaultValue) const
     {
-        if (const Attribute * attr = attribute(name))
+        if (const Attribute* attr = attribute(name))
         {
             if (attr->value != "-1")
             {
@@ -421,19 +421,19 @@ namespace ehb
     }
 #endif
 
-    FuelBlock * FuelBlock::clone(FuelBlock * parent) const
+    FuelBlock* FuelBlock::clone(FuelBlock* parent) const
     {
-        FuelBlock * result = new FuelBlock(parent);
+        FuelBlock* result = new FuelBlock(parent);
 
         result->mName = mName;
         result->mType = mType;
 
-        for (const FuelBlock * child : mChildren)
+        for (const FuelBlock* child : mChildren)
         {
             result->mChildren.push_back(child->clone(result));
         }
 
-        for (const Attribute & attr : mAttributes)
+        for (const Attribute& attr : mAttributes)
         {
             result->mAttributes.push_back(attr);
         }
@@ -441,7 +441,7 @@ namespace ehb
         return result;
     }
 
-    void FuelBlock::merge(FuelBlock * result) const
+    void FuelBlock::merge(FuelBlock* result) const
     {
         if (result)
         {
@@ -450,11 +450,11 @@ namespace ehb
 
             if (!isEmpty())
             {
-                for (const FuelBlock * i : mChildren)
+                for (const FuelBlock* i : mChildren)
                 {
                     bool found = false;
 
-                    for (FuelBlock * j : result->mChildren)
+                    for (FuelBlock* j : result->mChildren)
                     {
                         if (i->name() == j->name())
                         {
@@ -466,16 +466,16 @@ namespace ehb
 
                     if (!found)
                     {
-                        FuelBlock * copy = i->clone(result);
+                        FuelBlock* copy = i->clone(result);
                         result->mChildren.push_back(copy);
                     }
                 }
 
-                for (const Attribute & i : mAttributes)
+                for (const Attribute& i : mAttributes)
                 {
                     bool found = false;
 
-                    for (Attribute & j : result->mAttributes)
+                    for (Attribute& j : result->mAttributes)
                     {
                         if (i.name == j.name)
                         {
@@ -494,11 +494,11 @@ namespace ehb
         }
     }
 
-    const Attribute * FuelBlock::attribute(const std::string & name) const
+    const Attribute* FuelBlock::attribute(const std::string& name) const
     {
         const auto index = name.find_last_of(':');
 
-        const FuelBlock * parent;
+        const FuelBlock* parent;
         std::string actualName;
 
         if (index != std::string::npos)
@@ -514,7 +514,7 @@ namespace ehb
 
         if (parent)
         {
-            for (const Attribute & attr : parent->mAttributes)
+            for (const Attribute& attr : parent->mAttributes)
             {
                 if (attr.name == actualName)
                 {
@@ -526,7 +526,7 @@ namespace ehb
         return nullptr;
     }
 
-    bool Fuel::load(std::istream & stream)
+    bool Fuel::load(std::istream& stream)
     {
         const std::string data(std::istreambuf_iterator<char>(stream), {});
 
@@ -536,7 +536,7 @@ namespace ehb
         return parser.parse() == 0;
     }
 
-    bool Fuel::load(const std::string & filename)
+    bool Fuel::load(const std::string& filename)
     {
         std::ifstream stream(filename);
 
@@ -545,11 +545,12 @@ namespace ehb
 
     struct walkNode
     {
-        walkNode(std::ostream & stream) : stream(stream), level(0)
+        walkNode(std::ostream& stream) :
+            stream(stream), level(0)
         {
         }
 
-        void write(const FuelBlock * node)
+        void write(const FuelBlock* node)
         {
             if (node->type() != "")
             {
@@ -568,7 +569,7 @@ namespace ehb
                 stream << indent() << node->nameOf(i) << " = " << node->valueOf(i) << ";" << std::endl;
             }
 
-            for (FuelBlock * child : node->eachChild())
+            for (FuelBlock* child : node->eachChild())
             {
                 write(child);
             }
@@ -582,15 +583,15 @@ namespace ehb
             return std::string(level * 4, ' ');
         }
 
-        std::ostream & stream;
+        std::ostream& stream;
         unsigned int level;
     };
 
-    bool Fuel::save(std::ostream & stream) const
+    bool Fuel::save(std::ostream& stream) const
     {
         walkNode f(stream);
 
-        for (FuelBlock * child : this->eachChild())
+        for (FuelBlock* child : this->eachChild())
         {
             child->write(stream);
         }
@@ -598,11 +599,11 @@ namespace ehb
         return true;
     }
 
-    bool Fuel::save(const std::string & filename) const
+    bool Fuel::save(const std::string& filename) const
     {
         std::ofstream stream(filename);
 
-        for (FuelBlock * child : this->eachChild())
+        for (FuelBlock* child : this->eachChild())
         {
             child->write(stream);
         }
@@ -612,10 +613,10 @@ namespace ehb
         return true;
     }
 
-    void FuelBlock::write(std::ostream & stream) const
+    void FuelBlock::write(std::ostream& stream) const
     {
         walkNode f(stream);
 
         f.write(this);
     }
-}
+} // namespace ehb

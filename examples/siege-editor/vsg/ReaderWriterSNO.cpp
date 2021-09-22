@@ -1,31 +1,32 @@
 
 #include "ReaderWriterSNO.hpp"
 #include "ReaderWriterRAW.hpp"
-#include "io/LocalFileSys.hpp"
 #include "io/FileNameMap.hpp"
+#include "io/LocalFileSys.hpp"
 
-#include <iostream>
 #include <cassert>
+#include <iostream>
+#include <vsg/commands/BindIndexBuffer.h>
+#include <vsg/commands/BindVertexBuffers.h>
+#include <vsg/commands/Commands.h>
 #include <vsg/commands/Draw.h>
-#include <vsg/state/DescriptorImage.h>
-#include <vsg/nodes/Geometry.h>
-#include <vsg/nodes/MatrixTransform.h>
+#include <vsg/commands/DrawIndexed.h>
 #include <vsg/maths/quat.h>
 #include <vsg/maths/transform.h>
-#include <vsg/commands/BindVertexBuffers.h>
-#include <vsg/commands/BindIndexBuffer.h>
-#include <vsg/commands/Commands.h>
-#include <vsg/commands/DrawIndexed.h>
+#include <vsg/nodes/Geometry.h>
+#include <vsg/nodes/MatrixTransform.h>
 #include <vsg/nodes/VertexIndexDraw.h>
+#include <vsg/state/DescriptorImage.h>
 
-#include <vsg/state/DescriptorSet.h>
 #include <vsg/io/read.h>
+#include <vsg/state/DescriptorSet.h>
 
 namespace ehb
 {
     static constexpr uint32_t SNO_MAGIC = 0x444F4E53;
 
-    ReaderWriterSNO::ReaderWriterSNO(IFileSys& fileSys, FileNameMap& fileNameMap) : fileSys(fileSys), fileNameMap(fileNameMap)
+    ReaderWriterSNO::ReaderWriterSNO(IFileSys& fileSys, FileNameMap& fileNameMap) :
+        fileSys(fileSys), fileNameMap(fileNameMap)
     {
     }
 
@@ -202,7 +203,7 @@ namespace ehb
             stream.read((char*)&span, sizeof(uint32_t));
             stream.read((char*)&count, sizeof(uint32_t));
 
-            auto attributeArrays = vsg::DataList{ vertices, colors, tcoords };
+            auto attributeArrays = vsg::DataList{vertices, colors, tcoords};
 
             auto indicies = vsg::ushortArray::create(count);
             for (uint32_t j = 0; j < count; ++j)
@@ -222,10 +223,10 @@ namespace ehb
                     assert(texture != nullptr);
 
                     //! NOTE: should we be accessing the first element of the vector?
-                    auto descriptorSet = vsg::DescriptorSet::create(layout->setLayouts[0], vsg::Descriptors{ texture });
+                    auto descriptorSet = vsg::DescriptorSet::create(layout->setLayouts[0], vsg::Descriptors{texture});
                     assert(descriptorSet != nullptr);
 
-                    auto bindDescriptorSets = vsg::BindDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, const_cast<vsg::PipelineLayout*>(layout), 0, vsg::DescriptorSets{ descriptorSet });
+                    auto bindDescriptorSets = vsg::BindDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, const_cast<vsg::PipelineLayout*>(layout), 0, vsg::DescriptorSets{descriptorSet});
                     assert(bindDescriptorSets != nullptr);
 
                     group->addChild(bindDescriptorSets);
@@ -263,10 +264,18 @@ namespace ehb
         const auto targetMesh = targetNode->children[0].cast<SiegeNodeMesh>();
         const auto connectMesh = connectNode->children[0].cast<SiegeNodeMesh>();
 
-        if (!targetMesh) { log->error("SiegeNode::connect - targetNode has no SiegeNode parent"); return; }
-        if (!connectMesh) { log->error("SiegeNode::connect - connectNode has no SiegeNode parent"); return; }
+        if (!targetMesh)
+        {
+            log->error("SiegeNode::connect - targetNode has no SiegeNode parent");
+            return;
+        }
+        if (!connectMesh)
+        {
+            log->error("SiegeNode::connect - connectNode has no SiegeNode parent");
+            return;
+        }
 
-        const vsg::dmat4* m1 = nullptr, * m2 = nullptr;
+        const vsg::dmat4 *m1 = nullptr, *m2 = nullptr;
 
         for (const auto& entry : targetMesh->doorXform)
         {
@@ -277,7 +286,11 @@ namespace ehb
             }
         }
 
-        if (!m1) { log->error("couldn't find targetDoor {}", targetDoor); return; }
+        if (!m1)
+        {
+            log->error("couldn't find targetDoor {}", targetDoor);
+            return;
+        }
 
         for (const auto& entry : connectMesh->doorXform)
         {
@@ -288,7 +301,11 @@ namespace ehb
             }
         }
 
-        if (!m2) { log->error("couldn't find connectDoor {}", connectDoor); return; }
+        if (!m2)
+        {
+            log->error("couldn't find connectDoor {}", connectDoor);
+            return;
+        }
 
         // log->info("Supporting information found for SiegeNode::Connect - attempting connection of doors {} to {}", connectDoor, targetDoor);
 
@@ -322,10 +339,18 @@ namespace ehb
         const auto targetMesh = targetNode->children[0].cast<SiegeNodeMesh>();
         const auto connectMesh = connectNode->children[0].cast<SiegeNodeMesh>();
 
-        if (!targetMesh) { log->error("SiegeNode::connect - targetNode has no SiegeNode parent"); return; }
-        if (!connectMesh) { log->error("SiegeNode::connect - connectNode has no SiegeNode parent"); return; }
+        if (!targetMesh)
+        {
+            log->error("SiegeNode::connect - targetNode has no SiegeNode parent");
+            return;
+        }
+        if (!connectMesh)
+        {
+            log->error("SiegeNode::connect - connectNode has no SiegeNode parent");
+            return;
+        }
 
-        const vsg::dmat4* m1 = nullptr, * m2 = nullptr;
+        const vsg::dmat4 *m1 = nullptr, *m2 = nullptr;
 
         for (const auto& entry : targetMesh->doorXform)
         {
@@ -336,7 +361,11 @@ namespace ehb
             }
         }
 
-        if (!m1) { log->error("couldn't find targetDoor {}", targetDoor); return; }
+        if (!m1)
+        {
+            log->error("couldn't find targetDoor {}", targetDoor);
+            return;
+        }
 
         for (const auto& entry : connectMesh->doorXform)
         {
@@ -347,7 +376,11 @@ namespace ehb
             }
         }
 
-        if (!m2) { log->error("couldn't find connectDoor {}", connectDoor); return; }
+        if (!m2)
+        {
+            log->error("couldn't find connectDoor {}", connectDoor);
+            return;
+        }
 
         // log->info("Supporting information found for SiegeNode::Connect - attempting connection of doors {} to {}", connectDoor, targetDoor);
 
@@ -368,10 +401,10 @@ namespace ehb
         xform = vsg::mat4_cast(oneEightyRotate) * xform;
 
         // now transform by the first door...
-        xform = (t1) * xform;
+        xform = (t1)*xform;
 
         // "Hold on to your butts." - Ray Arnold
         connectRegion->matrix = xform;
     }
 
-}
+} // namespace ehb

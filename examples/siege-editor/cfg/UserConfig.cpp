@@ -5,16 +5,16 @@
 #include <spdlog/spdlog.h>
 
 #ifdef WIN32
-    #include <windows.h>
-    #include <shlobj.h>
+#    include <shlobj.h>
+#    include <windows.h>
 
-    #include <filesystem>
-    namespace fs = std::filesystem;
+#    include <filesystem>
+namespace fs = std::filesystem;
 #else
-    #include <basedir.h>
+#    include <basedir.h>
 
-    #include <experimental/filesystem>
-    namespace fs = std::experimental::filesystem;
+#    include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 #endif
 
 namespace ehb
@@ -27,7 +27,7 @@ namespace ehb
             fs::create_directory(value);
         }
 
-        catch (std::exception & exception)
+        catch (std::exception& exception)
         {
             spdlog::get("log")->error("Error creating path for [{}] - [{}]", value.string(), exception.what());
 
@@ -39,7 +39,7 @@ namespace ehb
 
     // TODO: make an IConfigSrc class
     // TODO: convert this into an implementation of the IConfigSrc class
-    void userConfig(WritableConfig & config)
+    void userConfig(WritableConfig& config)
     {
 
 #ifdef WIN32
@@ -110,4 +110,4 @@ namespace ehb
         if (createDirectory(logs)) config.setString("logs_path", logs.string());
         if (createDirectory(shots)) config.setString("shots_path", shots.string());
     }
-}
+} // namespace ehb
