@@ -15,7 +15,6 @@
 #include <QFileSystemModel>
 #include <QInputDialog>
 #include <QDialogButtonBox>
-#include <QListWidget>
 #include <QVBoxLayout>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
@@ -33,27 +32,26 @@ namespace ehb
 {
     class LoadMapDialog : public QDialog
     {
-
-        QDialogButtonBox *buttonBox;
-        QListWidget* listOfMaps;
         QVBoxLayout* layout;
 
         QTreeWidget* treeWidget;
+        QDialogButtonBox *buttonBox;
 
     public:
 
         LoadMapDialog(Systems& systems, QWidget* parent = nullptr) : QDialog(parent)
         {
+            // TODO: fix this so its a bit more dynamic
+            resize(450, 600);
+
             layout = new QVBoxLayout(this);
 
             buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-            listOfMaps = new QListWidget();
 
             treeWidget = new QTreeWidget();
             treeWidget->setColumnCount(2);
             treeWidget->setHeaderLabels(QStringList{ "Name", "Description" });
 
-            //layout->addWidget(listOfMaps);
             layout->addWidget(treeWidget);
             layout->addWidget(buttonBox);
 
@@ -65,37 +63,31 @@ namespace ehb
             for (const auto& map : maps)
             {
                 std::string path = map + "/main.gas";
-                if (auto stream = systems.fileSys.createInputStream(path))
+                if (auto mapdotgas = systems.fileSys.loadGasFile(path))
                 {
-                    if (Fuel doc; doc.load(*stream))
+                    QTreeWidgetItem* item = new QTreeWidgetItem;
+                    item->setText(0, stem(map).c_str());
+
+                    treeWidget->addTopLevelItem(item);
+
+                    auto regions = systems.fileSys.getDirectoryContents(map + "/regions");
+                    for (const auto& region : regions)
                     {
-                        QTreeWidgetItem* item = new QTreeWidgetItem;
-                        item->setText(0, stem(map).c_str());
-
-                        treeWidget->addTopLevelItem(item);
-
-                        auto regions = systems.fileSys.getDirectoryContents(map + "/regions");
-                        for (const auto& region : regions)
+                        if(auto regionmaindotgas = systems.fileSys.loadGasFile(region + "/main.gas"))                        
                         {
-                            spdlog::get("log")->info("{}", region);
-
-                            std::string regionmaindotgas = region + "/main.gas";
-                            if (stream = systems.fileSys.createInputStream(regionmaindotgas))
-                            {
-                                if (Fuel doc2; doc2.load(*stream))
-                                {
-                                    spdlog::get("log")->info("Load region file plz");
-                                    QTreeWidgetItem* item2 = new QTreeWidgetItem;
-                                    item2->setText(0, stem(region).c_str());
-                                    item2->setText(1, doc2.valueAsString("region:description").c_str());
-                                    item->addChild(item2);
-                                }
-                            }
+                            QTreeWidgetItem* item2 = new QTreeWidgetItem;
+                            item2->setText(0, stem(region).c_str());
+                            item2->setText(1, regionmaindotgas->valueAsString("region:description").c_str());
+                            item->addChild(item2);
                         }
-                        
                     }
+
+                    item->setExpanded(true);
                 }
             }
+
+            treeWidget->resizeColumnToContents(0);
+            treeWidget->resizeColumnToContents(1);
         }
     };
 }

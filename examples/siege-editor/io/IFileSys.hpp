@@ -35,6 +35,8 @@ namespace ehb
         virtual FileList getFiles() const = 0;
         virtual FileList getDirectoryContents(const std::string& directory) const = 0;
 
+        std::unique_ptr<Fuel> loadGasFile(const std::string& file);
+
         void eachGasFile(const std::string& directory, std::function<void(const std::string&, std::unique_ptr<Fuel>)> func);
     };
 
@@ -69,6 +71,19 @@ namespace ehb
     inline std::string getLowerCaseFileExtension(const std::string& filename)
     {
         return convertToLowerCase(getFileExtension(filename));
+    }
+
+    inline std::unique_ptr<Fuel> IFileSys::loadGasFile(const std::string& file)
+    {
+        if (auto stream = createInputStream(file))
+        {
+            if (auto doc = std::make_unique<Fuel>(); doc->load(*stream))
+            {
+                return doc;
+            }
+        }
+
+        return { };
     }
 
     inline void IFileSys::eachGasFile(const std::string& directory, std::function<void(const std::string&, std::unique_ptr<Fuel>)> func)
