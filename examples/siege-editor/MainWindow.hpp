@@ -7,10 +7,8 @@
 #include <vsg/io/Options.h>
 #include <vsg/nodes/Group.h>
 
-namespace vsgQt
-{
-    class ViewerWindow;
-}
+#include <vsg/viewer/Viewer.h>
+#include <vsgQt/ViewerWindow.h>
 
 namespace ehb
 {
@@ -25,6 +23,8 @@ namespace ehb
     private:
         Ui::MainWindow ui;
 
+        vsgQt::ViewerWindow* viewerWindow;
+
         Systems& systems;
 
         // top of the graph that contains the binding pipeline
@@ -34,5 +34,7 @@ namespace ehb
         vsg::ref_ptr<vsg::Group> vsg_sno = vsg::Group::create();
 
         void currentChanged(const QModelIndex& current, const QModelIndex& previous);
+
+        void loadNewMap();
     };
 } // namespace ehb

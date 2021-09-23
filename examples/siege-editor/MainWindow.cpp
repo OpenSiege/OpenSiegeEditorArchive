@@ -116,6 +116,8 @@ namespace ehb
 
         ui.setupUi(this);
 
+        connect(ui.actionOpen, &QAction::triggered, this, &MainWindow::loadNewMap);
+
         if (systems.config.getString("bits", "").empty())
         {
             bool ok;
@@ -137,7 +139,6 @@ namespace ehb
         if (dialog.exec() == QDialog::Accepted)
         {
             placeholder = dialog.getFullPathForSelectedRegion();
-            log->info("{} {} {}", dialog.getSelectedMap(), dialog.getSelectedRegion(), dialog.getFullPathForSelectedRegion());
         }
 
         QString bitsPath(systems.config.getString("bits", "").c_str());
@@ -167,7 +168,7 @@ namespace ehb
         windowTraits->width = 800;
         windowTraits->height = 600;
 
-        auto* viewerWindow = new vsgQt::ViewerWindow();
+        viewerWindow = new vsgQt::ViewerWindow();
         viewerWindow->traits = windowTraits;
 
         // provide the calls to set up the vsg::Viewer that will be used to render to the QWindow subclass vsgQt::ViewerWindow
@@ -230,7 +231,7 @@ namespace ehb
         viewerWindow->frameCallback = [](vsgQt::ViewerWindow& vw) {
             if (!vw.viewer || !vw.viewer->advanceToNextFrame()) return false;
 
-            //vw.viewer->compile();
+            vw.viewer->compile();
 
             // pass any events into EventHandlers assigned to the Viewer
             vw.viewer->handleEvents();
@@ -264,5 +265,31 @@ namespace ehb
         std::string file = info.baseName().toStdString();
 
         spdlog::get("log")->info("clicked item in tree: {}", file);
+    }
+
+    void MainWindow::loadNewMap()
+    {
+        LoadMapDialog dialog(systems, this);
+        if (dialog.exec() == QDialog::Accepted)
+        {
+            vsg_sno->children.clear();
+
+            if (auto sno = vsg::read(dialog.getFullPathForSelectedRegion() + ".region", systems.options).cast<vsg::MatrixTransform>())
+            {
+                auto t1 = vsg::MatrixTransform::create();
+                t1->addChild(sno);
+
+                auto t2 = vsg::MatrixTransform::create();
+                //t2->addChild(sno);
+
+                // add nodes below the binding pipeline
+                vsg_sno->addChild(t1);
+                //vsg_sno->addChild(t2);
+
+                //SiegeNodeMesh::connect(t1, 2, t2, 1);
+            }
+
+
+        }
     }
 } // namespace ehb
