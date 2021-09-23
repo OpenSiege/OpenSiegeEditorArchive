@@ -99,7 +99,7 @@ namespace ehb
             // always keep this guy below the scene to draw things
             vsg_scene->addChild(vsg_sno);
 
-            auto& window = vw.proxyWindow;
+            auto& window = vw.windowAdapter;
             if (!window) return false;
 
             auto& viewer = vw.viewer;
