@@ -38,6 +38,9 @@ namespace ehb
 
         readSettings();
 
+        ui.actionSave->setDisabled(true);
+        ui.actionSave_As->setDisabled(true);
+
         connect(ui.actionOpen, &QAction::triggered, this, &MainWindow::loadNewMap);
 
         if (systems.config.getString("bits", "").empty())
