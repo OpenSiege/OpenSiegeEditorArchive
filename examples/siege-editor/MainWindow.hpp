@@ -10,6 +10,8 @@
 #include <vsg/viewer/Viewer.h>
 #include <vsgQt/ViewerWindow.h>
 
+#include <QSettings>
+
 #include "SiegePipeline.hpp"
 
 namespace ehb
@@ -37,8 +39,32 @@ namespace ehb
 
         vsg::ref_ptr<DynamicLoadAndCompile> dynamic_load_and_compile;
 
+        void closeEvent(QCloseEvent* event) override;
+
+        void readSettings();
+
         void currentChanged(const QModelIndex& current, const QModelIndex& previous);
 
         void loadNewMap();
     };
+
+    inline void MainWindow::closeEvent(QCloseEvent* event)
+    {
+        QSettings settings("editor.ini", QSettings::IniFormat);
+        settings.beginGroup("MainWindow");
+        settings.setValue("size", size());
+        settings.setValue("position", pos());
+        settings.endGroup();
+
+        QMainWindow::closeEvent(event);
+    }
+
+    inline void MainWindow::readSettings()
+    {
+        QSettings settings("editor.ini", QSettings::IniFormat);
+        settings.beginGroup("MainWindow");
+        resize(settings.value("size", QSize(800, 600)).toSize());
+        move(settings.value("position").toPoint());
+    }
+
 } // namespace ehb

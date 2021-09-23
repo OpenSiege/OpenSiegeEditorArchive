@@ -36,6 +36,8 @@ namespace ehb
 
         ui.setupUi(this);
 
+        readSettings();
+
         connect(ui.actionOpen, &QAction::triggered, this, &MainWindow::loadNewMap);
 
         if (systems.config.getString("bits", "").empty())
@@ -78,8 +80,10 @@ namespace ehb
         windowTraits->windowTitle = "Open Siege Editor";
         windowTraits->debugLayer = false;
         windowTraits->apiDumpLayer = false;
-        windowTraits->width = 800;
-        windowTraits->height = 600;
+
+        // since we are using QSettings make sure we just read inthe size of the main window
+        windowTraits->width = size().width();
+        windowTraits->height = size().height();
 
         viewerWindow = new vsgQt::ViewerWindow();
         viewerWindow->traits = windowTraits;
