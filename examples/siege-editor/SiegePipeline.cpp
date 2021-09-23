@@ -55,7 +55,8 @@ void main() {
     outColor = texture(texSampler, fragTexCoord);
 })";
 
-    SiegeNodeMeshGUIDDatabase::SiegeNodeMeshGUIDDatabase(IFileSys& fileSys) : fileSys(fileSys)
+    SiegeNodeMeshGUIDDatabase::SiegeNodeMeshGUIDDatabase(IFileSys& fileSys) :
+        fileSys(fileSys)
     {
         auto log = spdlog::get("log");
 
@@ -74,7 +75,7 @@ void main() {
                     }
                 }
             }
-            });
+        });
 
         const std::string mapsFolder = "/world/maps/";
         for (const auto& mapPath : fileSys.getDirectoryContents(mapsFolder)) // each map folder

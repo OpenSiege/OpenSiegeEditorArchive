@@ -14,7 +14,6 @@
 
 #include "SiegePipeline.hpp"
 
-
 namespace ehb
 {
     class Systems;

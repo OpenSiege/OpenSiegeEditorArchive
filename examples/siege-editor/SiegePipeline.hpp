@@ -36,13 +36,11 @@ namespace ehb
     class SiegeNodeMeshGUIDDatabase : public vsg::Inherit<vsg::Object, SiegeNodeMeshGUIDDatabase>
     {
     public:
-
         SiegeNodeMeshGUIDDatabase(IFileSys& fileSys);
 
         const std::string& resolveFileName(const std::string& filename) const;
 
     private:
-
         virtual ~SiegeNodeMeshGUIDDatabase() = default;
 
         IFileSys& fileSys;
