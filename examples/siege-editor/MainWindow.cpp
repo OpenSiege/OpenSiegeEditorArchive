@@ -62,8 +62,7 @@ namespace ehb
 
             for (const auto& map : maps)
             {
-                std::string path = map + "/main.gas";
-                if (auto mapdotgas = systems.fileSys.loadGasFile(path))
+                if (auto mapdotgas = systems.fileSys.loadGasFile(map + "/main.gas"))
                 {
                     QTreeWidgetItem* item = new QTreeWidgetItem;
                     item->setText(0, stem(map).c_str());
@@ -88,6 +87,21 @@ namespace ehb
 
             treeWidget->resizeColumnToContents(0);
             treeWidget->resizeColumnToContents(1);
+        }
+
+        const std::string getSelectedMap() const
+        {
+            return treeWidget->selectedItems()[0]->parent()->text(0).toStdString();
+        }
+
+        const std::string getSelectedRegion() const
+        {
+            return treeWidget->selectedItems()[0]->text(0).toStdString();
+        }
+
+        const std::string getFullPathForSelectedRegion() const
+        {
+            return "/world/maps/" + getSelectedMap() + "/regions/" + getSelectedRegion();
         }
     };
 }
@@ -118,10 +132,12 @@ namespace ehb
             }
         }
 
+        std::string placeholder;
         LoadMapDialog dialog(systems, this);
         if (dialog.exec() == QDialog::Accepted)
         {
-            log->info("lets load a map");
+            placeholder = dialog.getFullPathForSelectedRegion();
+            log->info("{} {} {}", dialog.getSelectedMap(), dialog.getSelectedRegion(), dialog.getFullPathForSelectedRegion());
         }
 
         QString bitsPath(systems.config.getString("bits", "").c_str());
@@ -155,7 +171,7 @@ namespace ehb
         viewerWindow->traits = windowTraits;
 
         // provide the calls to set up the vsg::Viewer that will be used to render to the QWindow subclass vsgQt::ViewerWindow
-        viewerWindow->initializeCallback = [&](vsgQt::ViewerWindow& vw) {
+        viewerWindow->initializeCallback = [&, placeholder](vsgQt::ViewerWindow& vw) {
             // bind the graphics pipeline which should always stay intact
             vsg_scene->addChild(SiegeNodePipeline::BindGraphicsPipeline);
 
@@ -184,8 +200,10 @@ namespace ehb
                 static std::string siegeNode("t_grs01_houses_generic-a-log");
                 //static std::string siegeNode("t_xxx_flr_04x04-v0");
 
+                std::string regionPath = placeholder + ".region";
+                //std::string regionPath = dialog.getFullPathForSelectedRegion();
                 //if (vsg::ref_ptr<vsg::Group> sno = vsg::read("t_grs01_houses_generic-a-log", siege_options).cast<vsg::Group>(); sno != nullptr)
-                if (auto sno = vsg::read("world/maps/multiplayer_world/regions/town_center.region", systems.options).cast<vsg::MatrixTransform>())
+                if (auto sno = vsg::read(regionPath, systems.options).cast<vsg::MatrixTransform>())
                 {
                     auto t1 = vsg::MatrixTransform::create();
                     t1->addChild(sno);
