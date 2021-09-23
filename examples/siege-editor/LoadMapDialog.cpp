@@ -6,7 +6,8 @@
 
 namespace ehb
 {
-    LoadMapDialog::LoadMapDialog(IFileSys& fileSys, QWidget* parent) : QDialog(parent)
+    LoadMapDialog::LoadMapDialog(IFileSys& fileSys, QWidget* parent) :
+        QDialog(parent)
     {
         // TODO: fix this so its a bit more dynamic
         resize(450, 600);
@@ -17,7 +18,7 @@ namespace ehb
 
         treeWidget = new QTreeWidget();
         treeWidget->setColumnCount(2);
-        treeWidget->setHeaderLabels(QStringList{ "Name", "Description" });
+        treeWidget->setHeaderLabels(QStringList{"Name", "Description"});
 
         layout->addWidget(treeWidget);
         layout->addWidget(buttonBox);
@@ -70,4 +71,4 @@ namespace ehb
     {
         return "/world/maps/" + getSelectedMap() + "/regions/" + getSelectedRegion();
     }
-}
+} // namespace ehb

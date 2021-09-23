@@ -4,9 +4,9 @@
 #include <string>
 
 #include <QDialog>
-#include <QVBoxLayout>
-#include <QTreeWidget>
 #include <QDialogButtonBox>
+#include <QTreeWidget>
+#include <QVBoxLayout>
 
 namespace ehb
 {
@@ -19,7 +19,6 @@ namespace ehb
         QDialogButtonBox* buttonBox;
 
     public:
-
         LoadMapDialog(IFileSys& fileSys, QWidget* parent = nullptr);
 
         const std::string getSelectedMap() const;
@@ -28,4 +27,4 @@ namespace ehb
 
         const std::string getFullPathForSelectedRegion() const;
     };
-}
+} // namespace ehb

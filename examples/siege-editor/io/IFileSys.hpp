@@ -83,7 +83,7 @@ namespace ehb
             }
         }
 
-        return { };
+        return {};
     }
 
     inline void IFileSys::eachGasFile(const std::string& directory, std::function<void(const std::string&, std::unique_ptr<Fuel>)> func)
