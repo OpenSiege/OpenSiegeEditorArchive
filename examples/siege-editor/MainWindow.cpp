@@ -145,8 +145,6 @@ namespace ehb
 
     void MainWindow::currentChanged(const QModelIndex& current, const QModelIndex& previous)
     {
-        spdlog::get("log")->info("clicked item in tree");
-
         QFileInfo info(QString(current.data().toString()));
 
         // setup filters rather than this check
@@ -167,12 +165,9 @@ namespace ehb
         {
             vsg_sno->children.clear();
 
-            if (auto sno = vsg::read(dialog.getFullPathForSelectedRegion() + ".region", systems.options).cast<vsg::MatrixTransform>())
-            {
-                auto t1 = vsg::MatrixTransform::create();
-                dynamic_load_and_compile->loadRequest(dialog.getFullPathForSelectedRegion() + ".region", t1, systems.options);
-                vsg_sno->addChild(t1);
-            }
+            auto t1 = vsg::MatrixTransform::create();
+            dynamic_load_and_compile->loadRequest(dialog.getFullPathForSelectedRegion() + ".region", t1, systems.options);
+            vsg_sno->addChild(t1);
         }
     }
 } // namespace ehb
