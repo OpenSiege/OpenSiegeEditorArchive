@@ -44,6 +44,7 @@ set(SOURCES
     
     MainWindow.cpp
     SiegePipeline.cpp
+    LoadMapDialog.cpp
 )
 
 set(HEADERS

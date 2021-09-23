@@ -14,10 +14,8 @@
 #include <QDebug>
 #include <QFileSystemModel>
 #include <QInputDialog>
-#include <QDialogButtonBox>
-#include <QVBoxLayout>
-#include <QTreeWidget>
-#include <QTreeWidgetItem>
+
+#include "LoadMapDialog.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -27,84 +25,6 @@
 #include <filesystem>
 
 namespace fs = std::filesystem;
-
-namespace ehb
-{
-    class LoadMapDialog : public QDialog
-    {
-        QVBoxLayout* layout;
-
-        QTreeWidget* treeWidget;
-        QDialogButtonBox *buttonBox;
-
-    public:
-
-        LoadMapDialog(Systems& systems, QWidget* parent = nullptr) : QDialog(parent)
-        {
-            // TODO: fix this so its a bit more dynamic
-            resize(450, 600);
-
-            layout = new QVBoxLayout(this);
-
-            buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-
-            treeWidget = new QTreeWidget();
-            treeWidget->setColumnCount(2);
-            treeWidget->setHeaderLabels(QStringList{ "Name", "Description" });
-
-            layout->addWidget(treeWidget);
-            layout->addWidget(buttonBox);
-
-            connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-            connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-
-            auto maps = systems.fileSys.getDirectoryContents("/world/maps");
-
-            for (const auto& map : maps)
-            {
-                if (auto mapdotgas = systems.fileSys.loadGasFile(map + "/main.gas"))
-                {
-                    QTreeWidgetItem* item = new QTreeWidgetItem;
-                    item->setText(0, stem(map).c_str());
-
-                    treeWidget->addTopLevelItem(item);
-
-                    auto regions = systems.fileSys.getDirectoryContents(map + "/regions");
-                    for (const auto& region : regions)
-                    {
-                        if(auto regionmaindotgas = systems.fileSys.loadGasFile(region + "/main.gas"))                        
-                        {
-                            QTreeWidgetItem* item2 = new QTreeWidgetItem;
-                            item2->setText(0, stem(region).c_str());
-                            item2->setText(1, regionmaindotgas->valueAsString("region:description").c_str());
-                            item->addChild(item2);
-                        }
-                    }
-
-                    item->setExpanded(true);
-                }
-            }
-
-            treeWidget->resizeColumnToContents(0);
-            treeWidget->resizeColumnToContents(1);
-        }
-
-        const std::string getSelectedMap() const
-        {
-            return treeWidget->selectedItems()[0]->parent()->text(0).toStdString();
-        }
-
-        const std::string getSelectedRegion() const
-        {
-            return treeWidget->selectedItems()[0]->text(0).toStdString();
-        }
-
-        const std::string getFullPathForSelectedRegion() const
-        {
-            return "/world/maps/" + getSelectedMap() + "/regions/" + getSelectedRegion();
-        }
-    };
-}
 
 namespace ehb
 {
@@ -132,13 +52,6 @@ namespace ehb
                 // bail bail bail
                 QMetaObject::invokeMethod(this, "close", Qt::QueuedConnection);
             }
-        }
-
-        std::string placeholder;
-        LoadMapDialog dialog(systems, this);
-        if (dialog.exec() == QDialog::Accepted)
-        {
-            placeholder = dialog.getFullPathForSelectedRegion();
         }
 
         QString bitsPath(systems.config.getString("bits", "").c_str());
@@ -172,7 +85,7 @@ namespace ehb
         viewerWindow->traits = windowTraits;
 
         // provide the calls to set up the vsg::Viewer that will be used to render to the QWindow subclass vsgQt::ViewerWindow
-        viewerWindow->initializeCallback = [&, placeholder](vsgQt::ViewerWindow& vw) {
+        viewerWindow->initializeCallback = [&](vsgQt::ViewerWindow& vw) {
             // bind the graphics pipeline which should always stay intact
             vsg_scene->addChild(SiegeNodePipeline::BindGraphicsPipeline);
 
@@ -197,29 +110,6 @@ namespace ehb
             // add trackball to enable mouse driven camera view control.
             viewer->addEventHandler(vsg::Trackball::create(camera));
 
-            {
-                static std::string siegeNode("t_grs01_houses_generic-a-log");
-                //static std::string siegeNode("t_xxx_flr_04x04-v0");
-
-                std::string regionPath = placeholder + ".region";
-                //std::string regionPath = dialog.getFullPathForSelectedRegion();
-                //if (vsg::ref_ptr<vsg::Group> sno = vsg::read("t_grs01_houses_generic-a-log", siege_options).cast<vsg::Group>(); sno != nullptr)
-                if (auto sno = vsg::read(regionPath, systems.options).cast<vsg::MatrixTransform>())
-                {
-                    auto t1 = vsg::MatrixTransform::create();
-                    t1->addChild(sno);
-
-                    auto t2 = vsg::MatrixTransform::create();
-                    //t2->addChild(sno);
-
-                    // add nodes below the binding pipeline
-                    vsg_sno->addChild(t1);
-                    //vsg_sno->addChild(t2);
-
-                    //SiegeNodeMesh::connect(t1, 2, t2, 1);
-                }
-            }
-
             auto commandGraph = vsg::createCommandGraphForView(window, camera, vsg_scene);
             viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
 
@@ -231,6 +121,7 @@ namespace ehb
         viewerWindow->frameCallback = [](vsgQt::ViewerWindow& vw) {
             if (!vw.viewer || !vw.viewer->advanceToNextFrame()) return false;
 
+            // hack and needs to be removed
             vw.viewer->compile();
 
             // pass any events into EventHandlers assigned to the Viewer
@@ -269,7 +160,7 @@ namespace ehb
 
     void MainWindow::loadNewMap()
     {
-        LoadMapDialog dialog(systems, this);
+        LoadMapDialog dialog(systems.fileSys, this);
         if (dialog.exec() == QDialog::Accepted)
         {
             vsg_sno->children.clear();
@@ -278,18 +169,8 @@ namespace ehb
             {
                 auto t1 = vsg::MatrixTransform::create();
                 t1->addChild(sno);
-
-                auto t2 = vsg::MatrixTransform::create();
-                //t2->addChild(sno);
-
-                // add nodes below the binding pipeline
                 vsg_sno->addChild(t1);
-                //vsg_sno->addChild(t2);
-
-                //SiegeNodeMesh::connect(t1, 2, t2, 1);
             }
-
-
         }
     }
 } // namespace ehb
