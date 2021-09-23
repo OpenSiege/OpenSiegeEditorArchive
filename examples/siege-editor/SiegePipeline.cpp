@@ -55,10 +55,73 @@ void main() {
     outColor = texture(texSampler, fragTexCoord);
 })";
 
+    SiegeNodeMeshGUIDDatabase::SiegeNodeMeshGUIDDatabase(IFileSys& fileSys) : fileSys(fileSys)
+    {
+        auto log = spdlog::get("log");
+
+        static const std::string directory = "/world/global/siege_nodes";
+
+        fileSys.eachGasFile(directory, [&](const std::string& filename, auto doc) {
+            for (auto root : doc->eachChild())
+            {
+                for (auto node : root->eachChild())
+                {
+                    const auto itr = keyMap.emplace(node->valueOf("guid"), convertToLowerCase(node->valueOf("filename")));
+
+                    if (itr.second != true)
+                    {
+                        log->error("duplicate mesh mapping found: tried to insert {} for guid {}, but found filename {} there already", node->valueOf("filename"), node->valueOf("guid"), itr.first->second);
+                    }
+                }
+            }
+            });
+
+        const std::string mapsFolder = "/world/maps/";
+        for (const auto& mapPath : fileSys.getDirectoryContents(mapsFolder)) // each map folder
+        {
+            const std::string regionsPath = mapPath + "/regions";
+
+            for (const auto& regionPath : fileSys.getDirectoryContents(regionsPath))
+            {
+                const std::string node_mesh_index_dot_gas = regionPath + "/index/node_mesh_index.gas";
+
+                if (auto stream = fileSys.createInputStream(node_mesh_index_dot_gas))
+                {
+                    if (Fuel doc; doc.load(*stream))
+                    {
+                        // log->info("handling non-global mesh guids @ {}", node_mesh_index_dot_gas);
+
+                        for (const auto& entry : doc.child("node_mesh_index")->eachAttribute())
+                        {
+                            const auto itr = keyMap.emplace(entry.name, convertToLowerCase(entry.value));
+
+                            if (itr.second != true)
+                            {
+                                log->error("duplicate mesh mapping found: tried to insert {} for guid {}, but found filename {} there already", entry.value, entry.name, itr.first->second);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        log->info("{} loaded nodes {} into its mappings", __func__, keyMap.size());
+    }
+
+    const std::string& SiegeNodeMeshGUIDDatabase::resolveFileName(const std::string& filename) const
+    {
+        const auto itr = keyMap.find(filename);
+
+        return itr != keyMap.end() ? itr->second : filename;
+    }
+
     void Systems::init()
     {
         fileSys.init(config);
         fileNameMap.init(fileSys);
+
+        nodeMeshGuidDb = SiegeNodeMeshGUIDDatabase::create(fileSys);
+        options->setObject("SiegeNodeMeshGuidDatabase", nodeMeshGuidDb);
 
         options->readerWriters = {
 

@@ -26,15 +26,6 @@ namespace ehb
         // since vsg doesn't have find file callbacks we will this to resolve our filenames
         FileNameMap& fileNameMap;
 
-        std::unordered_map<std::string, std::string> keyMap;
-
         std::shared_ptr<spdlog::logger> log;
     };
-
-    inline const std::string& ReaderWriterSiegeNodeList::resolveFileName(const std::string& filename) const
-    {
-        const auto itr = keyMap.find(filename);
-
-        return itr != keyMap.end() ? itr->second : filename;
-    }
 } // namespace ehb

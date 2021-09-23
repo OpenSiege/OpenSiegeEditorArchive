@@ -33,6 +33,23 @@ namespace ehb
         inline static vsg::ref_ptr<vsg::BindGraphicsPipeline> BindGraphicsPipeline;
     };
 
+    class SiegeNodeMeshGUIDDatabase : public vsg::Inherit<vsg::Object, SiegeNodeMeshGUIDDatabase>
+    {
+    public:
+
+        SiegeNodeMeshGUIDDatabase(IFileSys& fileSys);
+
+        const std::string& resolveFileName(const std::string& filename) const;
+
+    private:
+
+        virtual ~SiegeNodeMeshGUIDDatabase() = default;
+
+        IFileSys& fileSys;
+
+        std::unordered_map<std::string, std::string> keyMap;
+    };
+
     class Systems
     {
     public:
@@ -44,6 +61,8 @@ namespace ehb
         WritableConfig& config;
         LocalFileSys fileSys; // temp
         FileNameMap fileNameMap;
+
+        vsg::ref_ptr<SiegeNodeMeshGUIDDatabase> nodeMeshGuidDb;
 
         vsg::ref_ptr<vsg::Options> options = vsg::Options::create();
     };

@@ -3,6 +3,8 @@
 #include "io/IFileSys.hpp"
 #include "vsg/ReaderWriterSNO.hpp"
 
+#include "SiegePipeline.hpp"
+
 // i'm lazy
 #include "vsg/all.h"
 
@@ -12,25 +14,6 @@ namespace ehb
         fileSys(fileSys), fileNameMap(fileNameMap)
     {
         log = spdlog::get("log");
-
-        static const std::string directory = "/world/global/siege_nodes";
-
-        fileSys.eachGasFile(directory, [this](const std::string& filename, auto doc) {
-            for (auto root : doc->eachChild())
-            {
-                for (auto node : root->eachChild())
-                {
-                    const auto itr = keyMap.emplace(node->valueOf("guid"), convertToLowerCase(node->valueOf("filename")));
-
-                    if (itr.second != true)
-                    {
-                        log->error("duplicate mesh mapping found: tried to insert {} for guid {}, but found filename {} there already", node->valueOf("filename"), node->valueOf("guid"), itr.first->second);
-                    }
-                }
-            }
-        });
-
-        log->info("{} loaded nodes {} into its mappings", __func__, keyMap.size());
     }
 
     vsg::ref_ptr<vsg::Object> ReaderWriterSiegeNodeList::read(const vsg::Path& filename, vsg::ref_ptr<const vsg::Options> options) const
@@ -50,6 +33,8 @@ namespace ehb
 
     vsg::ref_ptr<vsg::Object> ReaderWriterSiegeNodeList::read(std::istream& stream, vsg::ref_ptr<const vsg::Options> options) const
     {
+        const auto nodeMeshGuidDb = options->getObject("SiegeNodeMeshGuidDatabase")->cast<SiegeNodeMeshGUIDDatabase>();
+
         struct DoorEntry
         {
             uint32_t id;
@@ -92,7 +77,7 @@ namespace ehb
                     doorMap.emplace(nodeGuid, std::move(e));
                 }
 
-                const std::string meshFileName = resolveFileName(meshGuid);
+                const std::string meshFileName = nodeMeshGuidDb->resolveFileName(meshGuid);
 
                 if (meshFileName != meshGuid)
                 {
