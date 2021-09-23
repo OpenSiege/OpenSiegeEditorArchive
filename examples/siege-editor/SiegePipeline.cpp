@@ -195,6 +195,7 @@ void main() {
 
         if (auto node = vsg::read_cast<vsg::Node>(request->filename, request->options); node)
         {
+#if 0
             vsg::ComputeBounds computeBounds;
             node->accept(computeBounds);
 
@@ -205,6 +206,9 @@ void main() {
             scale->addChild(node);
 
             request->loaded = scale;
+
+#endif
+            request->loaded = node;
 
             std::cout << "Loaded " << request->filename << std::endl;
 
