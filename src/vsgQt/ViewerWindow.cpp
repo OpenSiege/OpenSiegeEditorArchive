@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <vsg/all.h>
 #ifdef vsgXchange_FOUND
-#    include <vsgXchange/all.h>
+#include <vsgXchange/all.h>
 #endif
 
 #include <QPlatformSurfaceEvent>
@@ -23,7 +23,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <vulkan/vulkan.h>
 
-#include <vsgQt/ProxyWindow.h>
 #include <vsgQt/ViewerWindow.h>
 
 using namespace vsgQt;
@@ -50,8 +49,21 @@ ViewerWindow::ViewerWindow() :
 
 ViewerWindow::~ViewerWindow()
 {
-    std::cout << "ViewerWindow::~ViewerWindow() destrcutor" << std::endl;
+    cleanup();
+
     delete vulkanInstance;
+}
+
+void ViewerWindow::cleanup()
+{
+    // remove links to all the VSG related classes.
+    if (windowAdapter)
+    {
+        windowAdapter->getSurface()->release();
+    }
+
+    windowAdapter = {};
+    viewer = {};
 }
 
 void ViewerWindow::render()
@@ -65,6 +77,7 @@ void ViewerWindow::render()
         }
         else
         {
+            cleanup();
             QCoreApplication::exit(0);
         }
     }
@@ -83,6 +96,7 @@ void ViewerWindow::render()
         }
         else
         {
+            cleanup();
             QCoreApplication::exit(0);
         }
     }
@@ -97,6 +111,15 @@ bool ViewerWindow::event(QEvent* e)
         render();
         break;
 
+    case QEvent::PlatformSurface:
+    {
+        auto surfaceEvent = dynamic_cast<QPlatformSurfaceEvent*>(e);
+        if (surfaceEvent->surfaceEventType()==QPlatformSurfaceEvent::SurfaceAboutToBeDestroyed)
+        {
+            cleanup();
+        }
+    }
+
     default:
         break;
     }
@@ -104,14 +127,12 @@ bool ViewerWindow::event(QEvent* e)
     return QWindow::event(e);
 }
 
+
 void ViewerWindow::exposeEvent(QExposeEvent* e)
 {
-    std::cout << "vulkanWindow.isExposed() = " << isExposed() << std::endl;
     if (!_initialized && isExposed())
     {
         _initialized = true;
-
-        std::cout << "    initializaing ViewerWindow" << std::endl;
 
         const auto rect = e->region().boundingRect();
         const uint32_t width = static_cast<uint32_t>(rect.width());
@@ -120,9 +141,6 @@ void ViewerWindow::exposeEvent(QExposeEvent* e)
         traits->width = width;
         traits->height = height;
         traits->fullscreen = false;
-
-        std::cout << "    width = " << width << ", height = " << height
-                  << std::endl;
 
         // create instance
         vsg::Names instanceExtensions;
@@ -153,21 +171,49 @@ void ViewerWindow::exposeEvent(QExposeEvent* e)
             // set up the window for Vulkan usage
             setVulkanInstance(vulkanInstance);
 
-            proxyWindow = ProxyWindow::create(this, traits);
+            auto surface = vsg::Surface::create(QVulkanInstance::surfaceForWindow(this), instance);
+            windowAdapter = new vsg::WindowAdapter(surface, traits);
 
             vsg::clock::time_point event_time = vsg::clock::now();
-            proxyWindow->bufferedEvents.emplace_back(new vsg::ExposeWindowEvent(proxyWindow, event_time, rect.x(), rect.y(), width, height));
+            windowAdapter->bufferedEvents.emplace_back(new vsg::ExposeWindowEvent(windowAdapter, event_time, rect.x(), rect.y(), width, height));
 
             if (initializeCallback) initializeCallback(*this);
 
             requestUpdate();
         }
     }
+
+    if (windowAdapter)
+    {
+        windowAdapter->windowValid = true;
+        windowAdapter->windowVisible = isExposed();
+    }
+}
+
+void ViewerWindow::hideEvent(QHideEvent* /*e*/)
+{
+    if (windowAdapter)
+    {
+        windowAdapter->windowVisible = false;
+    }
+}
+
+void ViewerWindow::resizeEvent(QResizeEvent* e)
+{
+    if (!windowAdapter) return;
+
+    // std::cout << __func__ << std::endl;
+
+    // WindowAdapter
+    windowAdapter->updateExtents(e->size().width(), e->size().height());
+
+    vsg::clock::time_point event_time = vsg::clock::now();
+    windowAdapter->bufferedEvents.emplace_back(new vsg::ConfigureWindowEvent(windowAdapter, event_time, x(), y(), static_cast<uint32_t>(e->size().width()), static_cast<uint32_t>(e->size().height())));
 }
 
 void ViewerWindow::keyPressEvent(QKeyEvent* e)
 {
-    if (!proxyWindow) return;
+    if (!windowAdapter) return;
 
     std::cout << __func__ << std::endl;
 
@@ -177,13 +223,13 @@ void ViewerWindow::keyPressEvent(QKeyEvent* e)
     if (keyboardMap->getKeySymbol(e, keySymbol, modifiedKeySymbol, keyModifier))
     {
         vsg::clock::time_point event_time = vsg::clock::now();
-        proxyWindow->bufferedEvents.emplace_back(new vsg::KeyPressEvent(proxyWindow, event_time, keySymbol, modifiedKeySymbol, keyModifier));
+        windowAdapter->bufferedEvents.emplace_back(new vsg::KeyPressEvent(windowAdapter, event_time, keySymbol, modifiedKeySymbol, keyModifier));
     }
 }
 
 void ViewerWindow::keyReleaseEvent(QKeyEvent* e)
 {
-    if (!proxyWindow) return;
+    if (!windowAdapter) return;
 
     std::cout << __func__ << std::endl;
 
@@ -193,13 +239,13 @@ void ViewerWindow::keyReleaseEvent(QKeyEvent* e)
     if (keyboardMap->getKeySymbol(e, keySymbol, modifiedKeySymbol, keyModifier))
     {
         vsg::clock::time_point event_time = vsg::clock::now();
-        proxyWindow->bufferedEvents.emplace_back(new vsg::KeyReleaseEvent(proxyWindow, event_time, keySymbol, modifiedKeySymbol, keyModifier));
+        windowAdapter->bufferedEvents.emplace_back(new vsg::KeyReleaseEvent(windowAdapter, event_time, keySymbol, modifiedKeySymbol, keyModifier));
     }
 }
 
 void ViewerWindow::mouseMoveEvent(QMouseEvent* e)
 {
-    if (!proxyWindow) return;
+    if (!windowAdapter) return;
 
     // std::cout << __func__ << std::endl;
 
@@ -215,12 +261,12 @@ void ViewerWindow::mouseMoveEvent(QMouseEvent* e)
     default: button = 0; break;
     }
 
-    proxyWindow->bufferedEvents.emplace_back(new vsg::MoveEvent(proxyWindow, event_time, e->x(), e->y(), (vsg::ButtonMask)button));
+    windowAdapter->bufferedEvents.emplace_back(new vsg::MoveEvent(windowAdapter, event_time, e->x(), e->y(), (vsg::ButtonMask)button));
 }
 
 void ViewerWindow::mousePressEvent(QMouseEvent* e)
 {
-    if (!proxyWindow) return;
+    if (!windowAdapter) return;
 
     // std::cout << __func__ << std::endl;
 
@@ -236,12 +282,12 @@ void ViewerWindow::mousePressEvent(QMouseEvent* e)
     default: button = 0; break;
     }
 
-    proxyWindow->bufferedEvents.emplace_back(new vsg::ButtonPressEvent(proxyWindow, event_time, e->x(), e->y(), (vsg::ButtonMask)button, 0));
+    windowAdapter->bufferedEvents.emplace_back(new vsg::ButtonPressEvent(windowAdapter, event_time, e->x(), e->y(), (vsg::ButtonMask)button, 0));
 }
 
 void ViewerWindow::mouseReleaseEvent(QMouseEvent* e)
 {
-    if (!proxyWindow) return;
+    if (!windowAdapter) return;
 
     // std::cout << __func__ << std::endl;
 
@@ -257,35 +303,25 @@ void ViewerWindow::mouseReleaseEvent(QMouseEvent* e)
     default: button = 0; break;
     }
 
-    proxyWindow->bufferedEvents.emplace_back(new vsg::ButtonReleaseEvent(proxyWindow, event_time, e->x(), e->y(), (vsg::ButtonMask)button, 0));
-}
-
-void ViewerWindow::resizeEvent(QResizeEvent* e)
-{
-    if (!proxyWindow) return;
-
-    // std::cout << __func__ << std::endl;
-
-    vsg::clock::time_point event_time = vsg::clock::now();
-    proxyWindow->bufferedEvents.emplace_back(new vsg::ConfigureWindowEvent(proxyWindow, event_time, x(), y(), static_cast<uint32_t>(e->size().width()), static_cast<uint32_t>(e->size().height())));
+    windowAdapter->bufferedEvents.emplace_back(new vsg::ButtonReleaseEvent(windowAdapter, event_time, e->x(), e->y(), (vsg::ButtonMask)button, 0));
 }
 
 void ViewerWindow::moveEvent(QMoveEvent* e)
 {
-    if (!proxyWindow) return;
+    if (!windowAdapter) return;
 
     // std::cout << __func__ << std::endl;
 
     vsg::clock::time_point event_time = vsg::clock::now();
-    proxyWindow->bufferedEvents.emplace_back(new vsg::ConfigureWindowEvent(proxyWindow, event_time, e->pos().x(), e->pos().y(), static_cast<uint32_t>(size().width()), static_cast<uint32_t>(size().height())));
+    windowAdapter->bufferedEvents.emplace_back(new vsg::ConfigureWindowEvent(windowAdapter, event_time, e->pos().x(), e->pos().y(), static_cast<uint32_t>(size().width()), static_cast<uint32_t>(size().height())));
 }
 
 void ViewerWindow::wheelEvent(QWheelEvent* e)
 {
-    if (!proxyWindow) return;
+    if (!windowAdapter) return;
 
     // std::cout << __func__ << std::endl;
 
     vsg::clock::time_point event_time = vsg::clock::now();
-    proxyWindow->bufferedEvents.emplace_back(new vsg::ScrollWheelEvent(proxyWindow, event_time, e->angleDelta().y() < 0 ? vsg::vec3(0.0f, -1.0f, 0.0f) : vsg::vec3(0.0f, 1.0f, 0.0f)));
+    windowAdapter->bufferedEvents.emplace_back(new vsg::ScrollWheelEvent(windowAdapter, event_time, e->angleDelta().y() < 0 ? vsg::vec3(0.0f, -1.0f, 0.0f) : vsg::vec3(0.0f, 1.0f, 0.0f)));
 }
