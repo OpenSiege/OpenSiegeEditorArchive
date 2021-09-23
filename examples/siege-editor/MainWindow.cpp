@@ -102,7 +102,8 @@ namespace ehb
 
             vsg::ref_ptr<vsg::ProjectionMatrix> perspective = vsg::Perspective::create(30.0, static_cast<double>(window->extent2D().width) / static_cast<double>(window->extent2D().height), 0.1, 1000);
             auto lookAt = vsg::LookAt::create(vsg::dvec3(1.0, 15.0, 50.0), vsg::dvec3(0.0, 0.0, 0.0), vsg::dvec3(0.0, 1.0, 0.0));
-            auto camera = vsg::Camera::create(perspective, lookAt, vsg::ViewportState::create(window->extent2D()));
+            auto viewportState = vsg::ViewportState::create(window->extent2D());
+            auto camera = vsg::Camera::create(perspective, lookAt, viewportState);
 
             // add close handler to respond the close window button and pressing escape
             viewer->addEventHandler(vsg::CloseHandler::create(viewer));
@@ -113,16 +114,17 @@ namespace ehb
             auto commandGraph = vsg::createCommandGraphForView(window, camera, vsg_scene);
             viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
 
+            dynamic_load_and_compile = DynamicLoadAndCompile::create(window, viewportState, viewer->status);
+
             viewer->compile();
 
             return true;
         };
 
-        viewerWindow->frameCallback = [](vsgQt::ViewerWindow& vw) {
+        viewerWindow->frameCallback = [&](vsgQt::ViewerWindow& vw) {
             if (!vw.viewer || !vw.viewer->advanceToNextFrame()) return false;
 
-            // hack and needs to be removed
-            vw.viewer->compile();
+            dynamic_load_and_compile->merge();
 
             // pass any events into EventHandlers assigned to the Viewer
             vw.viewer->handleEvents();
@@ -168,7 +170,7 @@ namespace ehb
             if (auto sno = vsg::read(dialog.getFullPathForSelectedRegion() + ".region", systems.options).cast<vsg::MatrixTransform>())
             {
                 auto t1 = vsg::MatrixTransform::create();
-                t1->addChild(sno);
+                dynamic_load_and_compile->loadRequest(dialog.getFullPathForSelectedRegion() + ".region", t1, systems.options);
                 vsg_sno->addChild(t1);
             }
         }

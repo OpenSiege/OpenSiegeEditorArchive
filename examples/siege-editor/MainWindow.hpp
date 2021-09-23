@@ -10,6 +10,8 @@
 #include <vsg/viewer/Viewer.h>
 #include <vsgQt/ViewerWindow.h>
 
+#include "SiegePipeline.hpp"
+
 namespace ehb
 {
     class Systems;
@@ -32,6 +34,8 @@ namespace ehb
 
         // contains our siege nodes, you can pop children off this guy and add to it to render nodes
         vsg::ref_ptr<vsg::Group> vsg_sno = vsg::Group::create();
+
+        vsg::ref_ptr<DynamicLoadAndCompile> dynamic_load_and_compile;
 
         void currentChanged(const QModelIndex& current, const QModelIndex& previous);
 

@@ -124,4 +124,134 @@ void main() {
         GraphicsPipeline = vsg::GraphicsPipeline::create(PipelineLayout, vsg::ShaderStages{vertexShader, fragmentShader}, pipelineStates);
         BindGraphicsPipeline = vsg::BindGraphicsPipeline::create(GraphicsPipeline);
     }
+
+    DynamicLoadAndCompile::DynamicLoadAndCompile(vsg::ref_ptr<vsg::Window> in_window, vsg::ref_ptr<vsg::ViewportState> in_viewport, vsg::ref_ptr<vsg::ActivityStatus> in_status) :
+        status(in_status),
+        window(in_window),
+        viewport(in_viewport)
+    {
+        loadThreads = vsg::OperationThreads::create(12, status);
+        compileThreads = vsg::OperationThreads::create(1, status);
+        mergeQueue = vsg::OperationQueue::create(status);
+    }
+
+    void DynamicLoadAndCompile::loadRequest(const vsg::Path& filename, vsg::ref_ptr<vsg::Group> attachmentPoint, vsg::ref_ptr<vsg::Options> options)
+    {
+        auto request = Request::create(filename, attachmentPoint, options);
+        loadThreads->add(LoadOperation::create(request, vsg::observer_ptr<DynamicLoadAndCompile>(this)));
+    }
+
+    void DynamicLoadAndCompile::compileRequest(vsg::ref_ptr<Request> request)
+    {
+        compileThreads->add(CompileOperation::create(request, vsg::observer_ptr<DynamicLoadAndCompile>(this)));
+    }
+
+    void DynamicLoadAndCompile::mergeRequest(vsg::ref_ptr<Request> request)
+    {
+        mergeQueue->add(MergeOperation::create(request, vsg::observer_ptr<DynamicLoadAndCompile>(this)));
+    }
+
+    vsg::ref_ptr<vsg::CompileTraversal> DynamicLoadAndCompile::takeCompileTraversal()
+    {
+        {
+            std::scoped_lock lock(mutex_compileTraversals);
+            if (!compileTraversals.empty())
+            {
+                auto ct = compileTraversals.front();
+                compileTraversals.erase(compileTraversals.begin());
+                std::cout << "takeCompileTraversal() resuing " << ct << std::endl;
+                return ct;
+            }
+        }
+
+        std::cout << "takeCompileTraversal() creating a new CompileTraversal" << std::endl;
+        auto ct = vsg::CompileTraversal::create(window, viewport, buildPreferences);
+
+        return ct;
+    }
+
+    void DynamicLoadAndCompile::addCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct)
+    {
+        std::cout << "addCompileTraversal(" << ct << ")" << std::endl;
+        std::scoped_lock lock(mutex_compileTraversals);
+        compileTraversals.push_back(ct);
+    }
+
+    void DynamicLoadAndCompile::merge()
+    {
+        vsg::ref_ptr<vsg::Operation> operation;
+        while (operation = mergeQueue->take())
+        {
+            operation->run();
+        }
+    }
+
+    void DynamicLoadAndCompile::LoadOperation::run()
+    {
+        vsg::ref_ptr<DynamicLoadAndCompile> dynamicLoadAndCompile(dlac);
+        if (!dynamicLoadAndCompile) return;
+
+        std::cout << "Loading " << request->filename << std::endl;
+
+        if (auto node = vsg::read_cast<vsg::Node>(request->filename, request->options); node)
+        {
+            vsg::ComputeBounds computeBounds;
+            node->accept(computeBounds);
+
+            vsg::dvec3 centre = (computeBounds.bounds.min + computeBounds.bounds.max) * 0.5;
+            double radius = vsg::length(computeBounds.bounds.max - computeBounds.bounds.min) * 0.5;
+            auto scale = vsg::MatrixTransform::create(vsg::scale(1.0 / radius, 1.0 / radius, 1.0 / radius) * vsg::translate(-centre));
+
+            scale->addChild(node);
+
+            request->loaded = scale;
+
+            std::cout << "Loaded " << request->filename << std::endl;
+
+            dynamicLoadAndCompile->compileRequest(request);
+        }
+    }
+
+    void DynamicLoadAndCompile::CompileOperation::run()
+    {
+        vsg::ref_ptr<DynamicLoadAndCompile> dynamicLoadAndCompile(dlac);
+        if (!dynamicLoadAndCompile) return;
+
+        if (request->loaded)
+        {
+            std::cout << "Compiling " << request->filename << std::endl;
+
+            auto compileTraversal = dynamicLoadAndCompile->takeCompileTraversal();
+
+            vsg::CollectDescriptorStats collectStats;
+            request->loaded->accept(collectStats);
+
+            auto maxSets = collectStats.computeNumDescriptorSets();
+            auto descriptorPoolSizes = collectStats.computeDescriptorPoolSizes();
+
+            // brute force allocation of new DescrptorPool for this subgraph, TODO : need to preallocate large DescritorPoil for multiple loaded subgraphs
+            if (descriptorPoolSizes.size() > 0) compileTraversal->context.descriptorPool = vsg::DescriptorPool::create(compileTraversal->context.device, maxSets, descriptorPoolSizes);
+
+            request->loaded->accept(*compileTraversal);
+
+            std::cout << "Finished compile traversal " << request->filename << std::endl;
+
+            compileTraversal->context.record(); // records and submits to queue
+
+            compileTraversal->context.waitForCompletion();
+
+            std::cout << "Finished waiting for compile " << request->filename << std::endl;
+
+            dynamicLoadAndCompile->mergeRequest(request);
+
+            dynamicLoadAndCompile->addCompileTraversal(compileTraversal);
+        }
+    }
+
+    void DynamicLoadAndCompile::MergeOperation::run()
+    {
+        std::cout << "Merging " << request->filename << std::endl;
+
+        request->attachmentPoint->addChild(request->loaded);
+    }
 } // namespace ehb
