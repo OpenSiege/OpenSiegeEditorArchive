@@ -36,6 +36,26 @@ namespace ehb
 
         ui.setupUi(this);
 
+        auto windowTraits = vsg::WindowTraits::create();
+        windowTraits->windowTitle = "Open Siege Editor";
+        windowTraits->debugLayer = false;
+        windowTraits->apiDumpLayer = false;
+
+        // since we are using QSettings make sure we just read inthe size of the main window
+        windowTraits->width = size().width();
+        windowTraits->height = size().height();
+
+        viewerWindow = new vsgQt::ViewerWindow();
+        viewerWindow->traits = windowTraits;
+
+//#if QT_HAS_VULKAN_SUPPORT
+        // if required set the QWindow's SurfaceType to QSurface::VulkanSurface.
+        viewerWindow->setSurfaceType(QSurface::VulkanSurface);
+//#endif
+
+        auto widget = QWidget::createWindowContainer(viewerWindow, this);
+        setCentralWidget(widget);
+
         readSettings();
 
         ui.actionSave->setDisabled(true);
@@ -79,25 +99,8 @@ namespace ehb
 
         connect(ui.treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::currentChanged);
 
-        auto windowTraits = vsg::WindowTraits::create();
-        windowTraits->windowTitle = "Open Siege Editor";
-        windowTraits->debugLayer = false;
-        windowTraits->apiDumpLayer = false;
-
-        // since we are using QSettings make sure we just read inthe size of the main window
-        windowTraits->width = size().width();
-        windowTraits->height = size().height();
-
-        viewerWindow = new vsgQt::ViewerWindow();
-        viewerWindow->traits = windowTraits;
-
         // provide the calls to set up the vsg::Viewer that will be used to render to the QWindow subclass vsgQt::ViewerWindow
-        viewerWindow->initializeCallback = [&](vsgQt::ViewerWindow& vw) {
-            // bind the graphics pipeline which should always stay intact
-            vsg_scene->addChild(SiegeNodePipeline::BindGraphicsPipeline);
-
-            // always keep this guy below the scene to draw things
-            vsg_scene->addChild(vsg_sno);
+        viewerWindow->initializeCallback = [&](vsgQt::ViewerWindow& vw, uint32_t width, uint32_t height) {
 
             auto& window = vw.windowAdapter;
             if (!window) return false;
@@ -117,6 +120,12 @@ namespace ehb
 
             // add trackball to enable mouse driven camera view control.
             viewer->addEventHandler(vsg::Trackball::create(camera));
+
+            // bind the graphics pipeline which should always stay intact
+            vsg_scene->addChild(SiegeNodePipeline::BindGraphicsPipeline);
+
+            // always keep this guy below the scene to draw things
+            vsg_scene->addChild(vsg_sno);
 
             auto commandGraph = vsg::createCommandGraphForView(window, camera, vsg_scene);
             viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
@@ -144,8 +153,6 @@ namespace ehb
 
             return true;
         };
-
-        setCentralWidget(QWidget::createWindowContainer(viewerWindow, this));
 
         resize(windowTraits->width, windowTraits->height);
     }
