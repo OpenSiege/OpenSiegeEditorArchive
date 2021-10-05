@@ -12,14 +12,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 </editor-fold> */
 
-#include <QPlatformSurfaceEvent>
-#include <QVulkanInstance>
+//#include <QVulkanInstance>
 #include <QWindow>
 
-#include <vsg/viewer/WindowAdapter.h>
-#include <vsg/viewer/WindowAdapter.h>
+#include <vsg/viewer/Window.h>
 
 #include <vsgQt/KeyboardMap.h>
+
+#define QT_HAS_VULKAN_SUPPORT (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
 
 namespace vsgQt
 {
@@ -34,23 +34,26 @@ namespace vsgQt
         vsg::ref_ptr<vsg::Instance> instance;
         vsg::ref_ptr<vsg::Viewer> viewer;
 
-        vsg::ref_ptr<vsg::WindowAdapter> windowAdapter;
+        vsg::ref_ptr<vsg::Window> windowAdapter;
         vsg::ref_ptr<KeyboardMap> keyboardMap;
 
-        using InitialCallback = std::function<void(ViewerWindow&)>;
-        InitialCallback initializeCallback;
+        using InitializeCallback = std::function<void(ViewerWindow&, uint32_t width, uint32_t height)>;
+        InitializeCallback initializeCallback;
 
         using FrameCallback = std::function<bool(ViewerWindow&)>;
         FrameCallback frameCallback;
 
     protected:
+        void intializeUsingAdapterWindow(uint32_t width, uint32_t height);
+        void intializeUsingVSGWindow(uint32_t width, uint32_t height);
+
         void render();
         void cleanup();
 
         bool event(QEvent* e) override;
 
         void exposeEvent(QExposeEvent*) override;
-        void hideEvent(QHideEvent *ev) override;
+        void hideEvent(QHideEvent* ev) override;
 
         void keyPressEvent(QKeyEvent*) override;
         void keyReleaseEvent(QKeyEvent*) override;
@@ -63,7 +66,6 @@ namespace vsgQt
 
     private:
         bool _initialized = false;
-        QVulkanInstance* vulkanInstance = nullptr;
     };
 
 } // namespace vsgQt
