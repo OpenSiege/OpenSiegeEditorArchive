@@ -36,6 +36,8 @@ namespace ehb
 
         ui.setupUi(this);
 
+        readSettings();
+
         auto windowTraits = vsg::WindowTraits::create();
         windowTraits->windowTitle = "Open Siege Editor";
         windowTraits->debugLayer = false;
@@ -55,8 +57,6 @@ namespace ehb
 
         auto widget = QWidget::createWindowContainer(viewerWindow, this);
         setCentralWidget(widget);
-
-        readSettings();
 
         ui.actionSave->setDisabled(true);
         ui.actionSave_As->setDisabled(true);
