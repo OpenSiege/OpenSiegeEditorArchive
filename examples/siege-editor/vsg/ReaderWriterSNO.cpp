@@ -216,8 +216,29 @@ namespace ehb
                 (*indicies)[j] = start + value;
             }
 
-            auto layout = options ? dynamic_cast<const vsg::PipelineLayout*>(options->getObject("PipelineLayout")) : nullptr;
-            if (layout != nullptr)
+            std::string texSetAbbr;
+
+            if (options != nullptr)
+            {
+                options->getValue("texsetabbr", texSetAbbr);
+
+                if (!texSetAbbr.empty())
+                {
+                    if (const auto itr = textureFileName.find("_xxx_"); itr != std::string::npos)
+                    {
+                        textureFileName.replace(itr + 1, 3, texSetAbbr);
+
+                        spdlog::get("log")->info("texture info: {}", textureFileName);
+                    }
+                }
+            }
+
+            if (fileSys.loadGasFile(textureFileName + ".gas"))
+            {
+                spdlog::get("log")->info("loading {}", textureFileName + ".gas");
+            }
+
+            if (auto layout = options->getObject<vsg::PipelineLayout>("PipelineLayout"); layout != nullptr)
             {
                 if (auto textureData = vsg::read(textureName, options).cast<vsg::Data>(); textureData != nullptr)
                 {

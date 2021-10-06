@@ -88,7 +88,20 @@ namespace ehb
 
                 if (meshFileName != meshGuid)
                 {
-                    if (auto mesh = vsg::read(meshFileName, options).cast<vsg::Group>(); mesh != nullptr)
+                    // this is pretty messy because the auxiliary object seems to be intended to be unique
+                    // so we have to reassign the pipeline to our local options
+                    // we are doing this because of things like texture set abbrvs that are related to this one load
+                    auto localOptions = vsg::Options::create(*options);
+                    localOptions->setValue("texsetabbr", texSetAbbr);
+
+                    // can't just set the object because of const
+                    //localOptions->setObject("PipelineLayout", options->getObject("PipelineLayout")->cast<vsg::PipelineLayout>());
+
+                    // we might as well just reference the pipeline layout at this point rather than passing it around
+                    localOptions->setObject("PipelineLayout", SiegeNodePipeline::PipelineLayout);
+
+                    if (auto mesh = vsg::read(meshFileName, localOptions).cast<vsg::Group>(); mesh != nullptr)
+                    //if (auto mesh = vsg::read(meshFileName, options).cast<vsg::Group>(); mesh != nullptr)
                     {
                         // temp
                         mesh->setValue("name", vsg::simpleFilename(meshFileName));
