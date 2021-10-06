@@ -2,7 +2,6 @@
 #include "SiegePipeline.hpp"
 
 #include <spdlog/spdlog.h>
-#include <vsg/all.h>
 
 #include "cfg/WritableConfig.hpp"
 #include "io/FileNameMap.hpp"
@@ -12,6 +11,8 @@
 #include "vsg/ReaderWriterRegion.hpp"
 #include "vsg/ReaderWriterSNO.hpp"
 #include "vsg/ReaderWriterSiegeNodeList.hpp"
+#include "vsg/io/stream.h"
+#include <spdlog/fmt/ostr.h>
 
 namespace ehb
 {
@@ -217,18 +218,20 @@ void main() {
 
     vsg::ref_ptr<vsg::CompileTraversal> DynamicLoadAndCompile::takeCompileTraversal()
     {
+        auto log = spdlog::get("log");
+
         {
             std::scoped_lock lock(mutex_compileTraversals);
             if (!compileTraversals.empty())
             {
                 auto ct = compileTraversals.front();
                 compileTraversals.erase(compileTraversals.begin());
-                std::cout << "takeCompileTraversal() resuing " << ct << std::endl;
+                log->info("takeCompileTraversal() reusing");
                 return ct;
             }
         }
 
-        std::cout << "takeCompileTraversal() creating a new CompileTraversal" << std::endl;
+        log->info("takeCompileTraversal() creating a new CompileTraversal");
         auto ct = vsg::CompileTraversal::create(window, viewport, buildPreferences);
 
         return ct;
@@ -236,7 +239,7 @@ void main() {
 
     void DynamicLoadAndCompile::addCompileTraversal(vsg::ref_ptr<vsg::CompileTraversal> ct)
     {
-        std::cout << "addCompileTraversal(" << ct << ")" << std::endl;
+        spdlog::get("log")->info("addCompileTraversal({})", ct);
         std::scoped_lock lock(mutex_compileTraversals);
         compileTraversals.push_back(ct);
     }
@@ -255,26 +258,15 @@ void main() {
         vsg::ref_ptr<DynamicLoadAndCompile> dynamicLoadAndCompile(dlac);
         if (!dynamicLoadAndCompile) return;
 
-        std::cout << "Loading " << request->filename << std::endl;
+        auto log = spdlog::get("log");
+
+        log->info("Loading {}", request->filename);
 
         if (auto node = vsg::read_cast<vsg::Node>(request->filename, request->options); node)
         {
-#if 0
-            vsg::ComputeBounds computeBounds;
-            node->accept(computeBounds);
-
-            vsg::dvec3 centre = (computeBounds.bounds.min + computeBounds.bounds.max) * 0.5;
-            double radius = vsg::length(computeBounds.bounds.max - computeBounds.bounds.min) * 0.5;
-            auto scale = vsg::MatrixTransform::create(vsg::scale(1.0 / radius, 1.0 / radius, 1.0 / radius) * vsg::translate(-centre));
-
-            scale->addChild(node);
-
-            request->loaded = scale;
-
-#endif
             request->loaded = node;
 
-            std::cout << "Loaded " << request->filename << std::endl;
+            log->info("Loaded {}", request->filename);
 
             dynamicLoadAndCompile->compileRequest(request);
         }
@@ -285,9 +277,11 @@ void main() {
         vsg::ref_ptr<DynamicLoadAndCompile> dynamicLoadAndCompile(dlac);
         if (!dynamicLoadAndCompile) return;
 
+        auto log = spdlog::get("log");
+
         if (request->loaded)
         {
-            std::cout << "Compiling " << request->filename << std::endl;
+            log->info("Compiling {}", request->filename);
 
             auto compileTraversal = dynamicLoadAndCompile->takeCompileTraversal();
 
@@ -302,13 +296,13 @@ void main() {
 
             request->loaded->accept(*compileTraversal);
 
-            std::cout << "Finished compile traversal " << request->filename << std::endl;
+            log->info("Finished compile traversal {}", request->filename);
 
             compileTraversal->context.record(); // records and submits to queue
 
             compileTraversal->context.waitForCompletion();
 
-            std::cout << "Finished waiting for compile " << request->filename << std::endl;
+            log->info("Finished waiting for compile {}", request->filename);
 
             dynamicLoadAndCompile->mergeRequest(request);
 
@@ -318,7 +312,7 @@ void main() {
 
     void DynamicLoadAndCompile::MergeOperation::run()
     {
-        std::cout << "Merging " << request->filename << std::endl;
+        spdlog::get("log")->info("Merging {}", request->filename);
 
         //vsg::write(request->loaded, "testascii.vsgt");
         //vsg::write(request->loaded, "testbinary.vsgb");

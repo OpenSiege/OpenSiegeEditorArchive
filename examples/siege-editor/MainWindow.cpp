@@ -1,28 +1,26 @@
 
 #include "MainWindow.hpp"
 
-#include "SiegePipeline.hpp"
-
-// work-around for weird VK_NO_PROTOTYPES issue with Qt
-#include <vsg/all.h>
-#include <vsg/vk/CommandPool.h>
-#include <vsg/vk/Fence.h>
-
-#include <vsg/viewer/Viewer.h>
-#include <vsgQt/ViewerWindow.h>
-
-#include <QDebug>
-#include <QFileSystemModel>
-#include <QInputDialog>
-
-#include "LoadMapDialog.hpp"
+#include <filesystem>
+#include <sstream>
 
 #include <spdlog/spdlog.h>
 
 #include "SiegePipeline.hpp"
 #include "cfg/WritableConfig.hpp"
 
-#include <filesystem>
+// work-around for weird VK_NO_PROTOTYPES issue with Qt
+#include <vsg/viewer/Viewer.h>
+#include <vsg/vk/CommandPool.h>
+#include <vsg/vk/Fence.h>
+#include <vsgQt/ViewerWindow.h>
+
+// make sure QT definitions come after vsg definitions
+#include <QDebug>
+#include <QFileSystemModel>
+#include <QInputDialog>
+
+#include "LoadMapDialog.hpp"
 
 namespace fs = std::filesystem;
 
@@ -39,15 +37,18 @@ namespace ehb
         double scale = 1.0;
         bool verbose = true;
 
-        IntersectionHandler(vsg::ref_ptr<vsg::Builder> in_builder, vsg::ref_ptr<vsg::Camera> in_camera, vsg::ref_ptr<vsg::Group> in_scenegraph, vsg::ref_ptr<vsg::EllipsoidModel> in_ellipsoidModel, double in_scale, vsg::ref_ptr<vsg::Options> in_options) :
+        std::shared_ptr<spdlog::logger> log;
+
+        IntersectionHandler(vsg::ref_ptr<vsg::Builder> in_builder, vsg::ref_ptr<vsg::Camera> in_camera, vsg::ref_ptr<vsg::Group> in_scenegraph, double in_scale, vsg::ref_ptr<vsg::Options> in_options) :
             builder(in_builder),
             options(in_options),
             camera(in_camera),
             scenegraph(in_scenegraph),
-            ellipsoidModel(in_ellipsoidModel),
             scale(in_scale)
         {
             if (scale > 10.0) scale = 10.0;
+
+            log = spdlog::get("log");
         }
 
         void apply(vsg::KeyPressEvent& keyPress) override
@@ -89,7 +90,6 @@ namespace ehb
                 {
                     scenegraph->addChild(builder->createCone(info));
                 }
-
             }
         }
 
@@ -113,49 +113,46 @@ namespace ehb
             auto intersector = vsg::LineSegmentIntersector::create(*camera, pointerEvent.x, pointerEvent.y);
             scenegraph->accept(*intersector);
 
-            if (verbose) std::cout << "interesection(" << pointerEvent.x << ", " << pointerEvent.y << ") " << intersector->intersections.size() << ")" << std::endl;
+            if (verbose) log->info("intersection(({}, {}), {})", pointerEvent.x, pointerEvent.y, intersector->intersections.size());
 
             if (intersector->intersections.empty()) return;
 
             // sort the intersectors front to back
             std::sort(intersector->intersections.begin(), intersector->intersections.end(), [](auto lhs, auto rhs) { return lhs.ratio < rhs.ratio; });
 
+            std::stringstream verboseOutput;
+
             for (auto& intersection : intersector->intersections)
             {
-                if (verbose) std::cout << "intersection = " << intersection.worldIntersection << " ";
-
-                if (ellipsoidModel)
-                {
-                    std::cout.precision(10);
-                    auto location = ellipsoidModel->convertECEFToLatLongAltitude(intersection.worldIntersection);
-                    if (verbose) std::cout << " lat = " << location[0] << ", long = " << location[1] << ", height = " << location[2];
-                }
+                if (verbose) verboseOutput << "intersection = " << intersection.worldIntersection << " ";
 
                 if (lastIntersection)
                 {
-                    if (verbose) std::cout << ", distance from previous intersection = " << vsg::length(intersection.worldIntersection - lastIntersection.worldIntersection);
+                    if (verbose) verboseOutput << ", distance from previous intersection = " << vsg::length(intersection.worldIntersection - lastIntersection.worldIntersection);
                 }
 
                 if (verbose)
                 {
                     for (auto& node : intersection.nodePath)
                     {
-                        std::cout << ", " << node->className();
+                        verboseOutput << ", " << node->className();
                     }
 
-                    std::cout << ", Arrays[ ";
+                    verboseOutput << ", Arrays[ ";
                     for (auto& array : intersection.arrays)
                     {
-                        std::cout << array << " ";
+                        verboseOutput << array << " ";
                     }
-                    std::cout << "] [";
+                    verboseOutput << "] [";
                     for (auto& ir : intersection.indexRatios)
                     {
-                        std::cout << "{" << ir.index << ", " << ir.ratio << "} ";
+                        verboseOutput << "{" << ir.index << ", " << ir.ratio << "} ";
                     }
-                    std::cout << "]";
+                    verboseOutput << "]";
 
-                    std::cout << std::endl;
+                    verboseOutput << std::endl;
+
+                    spdlog::get("log")->info("{}", verboseOutput.str());
                 }
             }
 
@@ -167,7 +164,7 @@ namespace ehb
         vsg::LineSegmentIntersector::Intersection lastIntersection;
     };
 
-}
+} // namespace ehb
 
 namespace ehb
 {
@@ -193,10 +190,10 @@ namespace ehb
         viewerWindow = new vsgQt::ViewerWindow();
         viewerWindow->traits = windowTraits;
 
-//#if QT_HAS_VULKAN_SUPPORT
+        //#if QT_HAS_VULKAN_SUPPORT
         // if required set the QWindow's SurfaceType to QSurface::VulkanSurface.
         viewerWindow->setSurfaceType(QSurface::VulkanSurface);
-//#endif
+        //#endif
 
         auto widget = QWidget::createWindowContainer(viewerWindow, this);
         setCentralWidget(widget);
@@ -244,7 +241,6 @@ namespace ehb
 
         // provide the calls to set up the vsg::Viewer that will be used to render to the QWindow subclass vsgQt::ViewerWindow
         viewerWindow->initializeCallback = [&](vsgQt::ViewerWindow& vw, uint32_t width, uint32_t height) {
-
             auto& window = vw.windowAdapter;
             if (!window) return false;
 
@@ -267,9 +263,9 @@ namespace ehb
             // add close handler to respond the close window button and pressing escape
             viewer->addEventHandler(vsg::CloseHandler::create(viewer));
 
-            vsg::ref_ptr<vsg::EllipsoidModel> ellipsoidModel;
-            auto builder = vsg::Builder::create(); builder->setup(window, camera->viewportState);
-            viewer->addEventHandler(IntersectionHandler::create(builder, camera, vsg_scene, ellipsoidModel, 10000.0f, systems.options));
+            auto builder = vsg::Builder::create();
+            builder->setup(window, camera->viewportState);
+            viewer->addEventHandler(IntersectionHandler::create(builder, camera, vsg_scene, 10000.0f, systems.options));
 
             // add trackball to enable mouse driven camera view control.
             viewer->addEventHandler(vsg::Trackball::create(camera));

@@ -32,7 +32,7 @@ namespace ehb
         Systems& systems;
 
         // top of the graph that contains the binding pipeline
-        // 
+        //
         // if you don't create a StateGroup and call add() then what happens is VSG doesnt have access to the pipeline topology
         // since it does not have the correct topology, then it will just fail out when it does the following check
         // if (arrayState.topology != VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
