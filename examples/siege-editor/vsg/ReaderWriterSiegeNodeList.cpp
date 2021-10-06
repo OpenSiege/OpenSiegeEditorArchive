@@ -33,7 +33,14 @@ namespace ehb
 
     vsg::ref_ptr<vsg::Object> ReaderWriterSiegeNodeList::read(std::istream& stream, vsg::ref_ptr<const vsg::Options> options) const
     {
-        const auto nodeMeshGuidDb = options->getObject("SiegeNodeMeshGuidDatabase")->cast<SiegeNodeMeshGUIDDatabase>();
+        const auto nodeMeshGuidDb = options->getObject<SiegeNodeMeshGUIDDatabase>("SiegeNodeMeshGuidDatabase");
+
+        if (nodeMeshGuidDb == nullptr)
+        {
+            log->critical("Options passed to ReaderWriterSiegeNodeList don't contain a valid SiegeNodeMeshGUIDDatabase. Bye.");
+
+            return {};
+        }
 
         struct DoorEntry
         {
@@ -102,6 +109,7 @@ namespace ehb
 
                         auto xform = vsg::MatrixTransform::create();
 
+#if 0
                         xform->setValue("bounds_camera", node->valueAsBool("bounds_camera"));
                         xform->setValue("camera_fade", node->valueAsBool("camera_fade"));
                         xform->setValue<uint32_t>("guid", node->valueAsUInt("guid"));
@@ -110,6 +118,7 @@ namespace ehb
                         xform->setValue<uint32_t>("nodesection", node->valueAsUInt("nodesection"));
                         xform->setValue("occludes_camera", node->valueAsBool("occludes_camera"));
                         xform->setValue("occludes_light", node->valueAsBool("occludes_light"));
+#endif
 
                         group->addChild(xform);
                         xform->addChild(mesh);

@@ -21,6 +21,8 @@
 #include <vsg/io/read.h>
 #include <vsg/state/DescriptorSet.h>
 
+#include <vsg/traversals/ComputeBounds.h>
+
 namespace ehb
 {
     static constexpr uint32_t SNO_MAGIC = 0x444F4E53;
@@ -237,7 +239,7 @@ namespace ehb
                 std::cout << "No layout passed via options. Mesh will probably render incorrectly." << std::endl;
             }
 
-#if 1
+#if 0
             auto commands = vsg::Commands::create();
             commands->addChild(vsg::BindVertexBuffers::create(0, attributeArrays));
             commands->addChild(vsg::BindIndexBuffer::create(indicies));
@@ -250,7 +252,12 @@ namespace ehb
             vid->indexCount = indicies->size();
             vid->instanceCount = 1;
 
+            //vid->setValue<vsg::sphere>("bound", computeBounds.bounds);
+
             group->addChild(vid);
+
+            //vsg::ComputeBounds computeBounds;
+            //group->accept(computeBounds);
 #endif
         }
 

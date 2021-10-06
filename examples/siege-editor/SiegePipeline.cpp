@@ -178,7 +178,7 @@ void main() {
 
         vsg::GraphicsPipelineStates pipelineStates{
             vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
-            vsg::InputAssemblyState::create(),
+            vsg::InputAssemblyState::create(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST),
             vsg::RasterizationState::create(),
             vsg::MultisampleState::create(),
             vsg::ColorBlendState::create(),
@@ -319,6 +319,9 @@ void main() {
     void DynamicLoadAndCompile::MergeOperation::run()
     {
         std::cout << "Merging " << request->filename << std::endl;
+
+        //vsg::write(request->loaded, "testascii.vsgt");
+        //vsg::write(request->loaded, "testbinary.vsgb");
 
         request->attachmentPoint->addChild(request->loaded);
     }
