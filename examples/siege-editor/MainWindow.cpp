@@ -33,7 +33,6 @@ namespace ehb
         vsg::ref_ptr<vsg::Options> options;
         vsg::ref_ptr<vsg::Camera> camera;
         vsg::ref_ptr<vsg::Group> scenegraph;
-        vsg::ref_ptr<vsg::EllipsoidModel> ellipsoidModel;
         double scale = 1.0;
         bool verbose = true;
 
@@ -255,7 +254,8 @@ namespace ehb
             auto camera = vsg::Camera::create(perspective, lookAt, viewportState);
 
             // bind the graphics pipeline which should always stay intact
-            vsg_scene->add(SiegeNodePipeline::BindGraphicsPipeline);
+            //vsg_scene->add(SiegeNodePipeline::BindGraphicsPipeline);
+            vsg_scene->addChild(SiegeNodePipeline::BindGraphicsPipeline);
 
             // always keep this guy below the scene to draw things
             vsg_scene->addChild(vsg_sno);

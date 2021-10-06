@@ -179,7 +179,7 @@ void main() {
 
         vsg::GraphicsPipelineStates pipelineStates{
             vsg::VertexInputState::create(vertexBindingsDescriptions, vertexAttributeDescriptions),
-            vsg::InputAssemblyState::create(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST),
+            vsg::InputAssemblyState::create(),
             vsg::RasterizationState::create(),
             vsg::MultisampleState::create(),
             vsg::ColorBlendState::create(),

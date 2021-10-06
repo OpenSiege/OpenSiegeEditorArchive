@@ -261,11 +261,11 @@ void ViewerWindow::resizeEvent(QResizeEvent* e)
     // WindowAdapter
     if (auto adapter = windowAdapter.cast<vsg::WindowAdapter>(); adapter)
     {
-        adapter->updateExtents(e->size().width(), e->size().height());
+        //adapter->updateExtents(e->size().width(), e->size().height());
     }
 
     vsg::clock::time_point event_time = vsg::clock::now();
-    windowAdapter->bufferedEvents.emplace_back(new vsg::ConfigureWindowEvent(windowAdapter, event_time, x(), y(), static_cast<uint32_t>(e->size().width()), static_cast<uint32_t>(e->size().height())));
+    //windowAdapter->bufferedEvents.emplace_back(new vsg::ConfigureWindowEvent(windowAdapter, event_time, x(), y(), static_cast<uint32_t>(e->size().width()), static_cast<uint32_t>(e->size().height())));
 }
 
 void ViewerWindow::keyPressEvent(QKeyEvent* e)
