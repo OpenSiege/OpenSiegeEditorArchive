@@ -252,12 +252,22 @@ namespace ehb
             vid->indexCount = indicies->size();
             vid->instanceCount = 1;
 
-            //vid->setValue<vsg::sphere>("bound", computeBounds.bounds);
+
+            vsg::ComputeBounds computeBounds;
+            vid->accept(computeBounds);
+
+            // taken from Intersector.cpp#138
+            if (computeBounds.bounds.valid())
+            {
+                // manually calculate sphere so its done on load rather than by the graph later
+                vsg::sphere bound;
+                bound.center = (computeBounds.bounds.min + computeBounds.bounds.max) * 0.5;
+                bound.radius = vsg::length(computeBounds.bounds.max - computeBounds.bounds.min) * 0.5;
+
+                vid->setValue("bound", bound);
+            }
 
             group->addChild(vid);
-
-            //vsg::ComputeBounds computeBounds;
-            //group->accept(computeBounds);
 #endif
         }
 
