@@ -194,12 +194,11 @@ namespace ehb
 
         for (uint32_t index = 0; index < textureCount; index++)
         {
-            std::string textureName, textureFileName;
+            std::string textureName;
             uint32_t start, span, count;
 
+            // the textureName here is associated with the material name on export - this matches a texture name
             std::getline(stream, textureName, '\0');
-            textureFileName = textureName + ".raw";
-            // std::cout << "handling texture: " << textureName << std::endl;
 
             stream.read((char*)&start, sizeof(uint32_t));
             stream.read((char*)&span, sizeof(uint32_t));
@@ -208,6 +207,7 @@ namespace ehb
             auto attributeArrays = vsg::DataList{vertices, colors, tcoords};
 
             auto indicies = vsg::ushortArray::create(count);
+
             for (uint32_t j = 0; j < count; ++j)
             {
                 uint16_t value;
@@ -216,6 +216,7 @@ namespace ehb
                 (*indicies)[j] = start + value;
             }
 
+            // a texSetAbbr such as grs01
             std::string texSetAbbr;
 
             if (options != nullptr)
@@ -224,19 +225,28 @@ namespace ehb
 
                 if (!texSetAbbr.empty())
                 {
-                    if (const auto itr = textureFileName.find("_xxx_"); itr != std::string::npos)
+                    // if the material / textureName contains xxx then its generic and we are about to replace it
+                    if (const auto itr = textureName.find("_xxx_"); itr != std::string::npos)
                     {
-                        textureFileName.replace(itr + 1, 3, texSetAbbr);
-
-                        spdlog::get("log")->info("texture info: {}", textureFileName);
+                        textureName.replace(itr + 1, 3, texSetAbbr);
                     }
                 }
             }
 
-            if (fileSys.loadGasFile(textureFileName + ".gas"))
+#if 0
+            if (fileSys.loadGasFile(textureName + ".gas"))
             {
-                spdlog::get("log")->info("loading {}", textureFileName + ".gas");
+                spdlog::get("log")->info("loading {}", textureName + ".gas");
             }
+
+            if (auto fullFilePath = fileNameMap.findDataFile(textureName); !fullFilePath.empty())
+            {
+                if (auto file = fileSys.createInputStream(fullFilePath + ".gas"); file != nullptr)
+                {
+                    spdlog::get("log")->info("test");
+                }
+            }
+#endif
 
             if (auto layout = options->getObject<vsg::PipelineLayout>("PipelineLayout"); layout != nullptr)
             {
@@ -272,7 +282,6 @@ namespace ehb
             vid->indices = indicies;
             vid->indexCount = indicies->size();
             vid->instanceCount = 1;
-
 
             vsg::ComputeBounds computeBounds;
             vid->accept(computeBounds);

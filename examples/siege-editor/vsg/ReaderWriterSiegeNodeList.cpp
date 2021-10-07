@@ -178,7 +178,7 @@ namespace ehb
 
             func(targetGuid);
 
-#if 1
+#if 0
             // loop all the nodes loaded
             for (auto const& [nodeGuid, xform] : nodeMap)
             {
@@ -200,54 +200,6 @@ namespace ehb
                         vsg::vec4 tmpPos(xform->matrix[3]);
                         vsg::dquat quat;
                         auto m = xform->matrix;
-
-#    if 0
-                        auto fourXSquaredMinus1 = xform->matrix[0][0] - xform->matrix[1][1] - xform->matrix[2][2];
-                        auto fourYSquaredMinus1 = xform->matrix[1][1] - xform->matrix[0][0] - xform->matrix[2][2];
-                        auto fourZSquaredMinus1 = xform->matrix[2][2] - xform->matrix[0][0] - xform->matrix[1][1];
-                        auto fourWSquaredMinus1 = xform->matrix[0][0] + xform->matrix[1][1] + xform->matrix[2][2];
-
-                        int biggestIndex = 0;
-                        double fourBiggestSquaredMinus1 = fourWSquaredMinus1;
-                        if (fourXSquaredMinus1 > fourBiggestSquaredMinus1)
-                        {
-                            fourBiggestSquaredMinus1 = fourXSquaredMinus1;
-                            biggestIndex = 1;
-                        }
-                        if (fourYSquaredMinus1 > fourBiggestSquaredMinus1)
-                        {
-                            fourBiggestSquaredMinus1 = fourYSquaredMinus1;
-                            biggestIndex = 2;
-                        }
-                        if (fourZSquaredMinus1 > fourBiggestSquaredMinus1)
-                        {
-                            fourBiggestSquaredMinus1 = fourZSquaredMinus1;
-                            biggestIndex = 3;
-                        }
-
-                        double biggestVal = sqrt(fourBiggestSquaredMinus1 + static_cast<double>(1)) * static_cast<double>(0.5);
-                        double mult = static_cast<double>(0.25) / biggestVal;
-
-                        auto m = xform->matrix;
-
-                        switch (biggestIndex)
-                        {
-                        case 0:
-                            quat.set(biggestVal, (m[1][2] - m[2][1]) * mult, (m[2][0] - m[0][2]) * mult, (m[0][1] - m[1][0]) * mult);
-                            break;
-                        case 1:
-                            quat.set((m[1][2] - m[2][1]) * mult, biggestVal, (m[0][1] + m[1][0]) * mult, (m[2][0] + m[0][2]) * mult);
-                            break;
-                        case 2:
-                            quat.set((m[2][0] - m[0][2]) * mult, (m[0][1] + m[1][0]) * mult, biggestVal, (m[1][2] + m[2][1]) * mult);
-                            break;
-                        case 3:
-                            quat.set((m[0][1] - m[1][0]) * mult, (m[2][0] + m[0][2]) * mult, (m[1][2] + m[2][1]) * mult, biggestVal);
-                            break;
-                        default: // Silence a -Wswitch-default warning in GCC. Should never actually get here. Assert is just for sanity.
-                            assert(false);
-                        }
-#    endif
 
                         // https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
                         double tr = m[0][0] + m[1][1] + m[2][2];
@@ -280,8 +232,6 @@ namespace ehb
                         mesh->getObject<InstanceData>("InstanceData")->shader.emplace_back(InstanceData::Data{vsg::dvec3(tmpPos[0], tmpPos[1], tmpPos[2]), quat});
 
                         //mesh->getObject<InstanceData>("InstanceData")->data.push_back(yup);
-
-                        int foo = 55;
                     }
                 }
             }

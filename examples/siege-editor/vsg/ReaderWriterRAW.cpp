@@ -45,14 +45,14 @@ namespace ehb
         if (magic != RAW_MAGIC)
         {
             // this isn't a raw file
-            return vsg::ref_ptr<vsg::Object>();
+            return {};
         }
 
         // TODO: handle the different possible formats available here
         if (format != RAW_FORMAT_8888)
         {
             // this is an unsupported format
-            return vsg::ref_ptr<vsg::Object>();
+            return {};
         }
 
         // with the 8888 format each pixel is 4 bytes

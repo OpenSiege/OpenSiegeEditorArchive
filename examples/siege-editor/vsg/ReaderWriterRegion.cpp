@@ -69,6 +69,6 @@ namespace ehb
             log->critical("failed to parse main.gas");
         }
 
-        return vsg::ref_ptr<vsg::Object>();
+        return {};
     };
 } // namespace ehb
