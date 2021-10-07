@@ -14,11 +14,9 @@ namespace ehb
     class Aspect : public vsg::Inherit<vsg::Group, Aspect>
     {
     public:
-
         struct Impl;
 
     public:
-
         explicit Aspect(std::shared_ptr<Impl> impl);
         //Aspect(const Aspect& aspect, const osg::CopyOp& copyop );
 
@@ -38,7 +36,6 @@ namespace ehb
 #endif
 
     private:
-
         friend class ReaderWriterASP;
 
         std::shared_ptr<Impl> d;
@@ -65,4 +62,4 @@ namespace ehb
         bool drawingBoundingBox = false;
 #endif
     };
-}
+} // namespace ehb

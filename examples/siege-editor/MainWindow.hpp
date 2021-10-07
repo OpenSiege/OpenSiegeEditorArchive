@@ -37,8 +37,8 @@ namespace ehb
         // since it does not have the correct topology, then it will just fail out when it does the following check
         // if (arrayState.topology != VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
         // I should open a ticket with VSG to see if that is the intended behavior
-        //vsg::ref_ptr<vsg::StateGroup> vsg_scene = vsg::StateGroup::create();
-        vsg::ref_ptr<vsg::Group> vsg_scene = vsg::Group::create();
+        vsg::ref_ptr<vsg::StateGroup> vsg_scene = vsg::StateGroup::create();
+        //vsg::ref_ptr<vsg::Group> vsg_scene = vsg::Group::create();
 
         // contains our siege nodes, you can pop children off this guy and add to it to render nodes
         vsg::ref_ptr<vsg::Group> vsg_sno = vsg::Group::create();

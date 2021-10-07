@@ -181,7 +181,7 @@ namespace ehb
 
         auto windowTraits = vsg::WindowTraits::create();
         windowTraits->windowTitle = "Open Siege Editor";
-        windowTraits->debugLayer = false;
+        windowTraits->debugLayer = true;
         windowTraits->apiDumpLayer = false;
 
         // since we are using QSettings make sure we just read inthe size of the main window
@@ -256,14 +256,27 @@ namespace ehb
             auto camera = vsg::Camera::create(perspective, lookAt, viewportState);
 
             // bind the graphics pipeline which should always stay intact
-            //vsg_scene->add(SiegeNodePipeline::BindGraphicsPipeline);
-            vsg_scene->addChild(SiegeNodePipeline::BindGraphicsPipeline);
+            vsg_scene->add(SiegeNodePipeline::BindGraphicsPipeline);
+            //vsg_scene->addChild(SiegeNodePipeline::BindGraphicsPipeline);
 
             // always keep this guy below the scene to draw things
             vsg_scene->addChild(vsg_sno);
 
             // add close handler to respond the close window button and pressing escape
             viewer->addEventHandler(vsg::CloseHandler::create(viewer));
+
+            {
+                if (auto mesh = vsg::read_cast<vsg::Group>("m_c_gah_fg_pos_a1", systems.options); mesh != nullptr)
+                {
+                    vsg_sno->addChild(mesh);
+
+                    spdlog::get("log")->info("added mesh");
+                }
+                //if (auto mesh = vsg::read("m_c_gah_fg_pos_a1", nullptr).cast<vsg::Group>(); mesh != nullptr)
+                //{
+                //   vsg_scene->addChild(mesh);
+                //}
+            }
 
             auto builder = vsg::Builder::create();
             builder->setup(window, camera->viewportState);

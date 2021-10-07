@@ -7,6 +7,8 @@
 #include <vsg/maths/vec2.h>
 #include <vsg/maths/vec3.h>
 
+#include <vsg/state/PipelineLayout.h>
+
 // the asp is a bit complex and trying to make it work has been a fluid experience so I went with a Pimpl approach
 
 namespace ehb
@@ -70,7 +72,7 @@ namespace ehb
         // "Corner" is the term used in the 3DMax export scripts.
         struct WCornerInfo
         {
-            vsg::vec3 pos;
+            vsg::vec3 position;
             vsg::vec3 normal;
             vsg::quat weight;
             vsg::vec2 texCoord;
@@ -136,6 +138,9 @@ namespace ehb
         uint32_t vertexCount;
         uint32_t subMeshCount;
         uint32_t renderFlags;
+
+        const vsg::PipelineLayout* pipelineLayout;
+        vsg::ref_ptr<const vsg::Options> options; // ugh
 
         std::vector<SubMesh> subMeshes;
         std::vector<BoneInfo> boneInfos;

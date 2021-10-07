@@ -42,7 +42,7 @@ namespace ehb
             }
         }
 
-        return vsg::ref_ptr<vsg::Object>();
+        return {};
     }
 
     vsg::ref_ptr<vsg::Object> ReaderWriterSNO::read(std::istream& stream, vsg::ref_ptr<const vsg::Options> options) const
@@ -54,7 +54,7 @@ namespace ehb
         stream.read((char*)&unk1, sizeof(uint32_t));
 
         if (magic != SNO_MAGIC)
-            return vsg::ref_ptr<vsg::Object>();
+            return {};
 
         uint32_t doorCount = 0, spotCount = 0, cornerCount = 0, faceCount = 0, textureCount = 0;
         float minX = 0.0f, minY = 0.0f, minZ = 0.0f, maxX = 0.0f, maxY = 0.0f, maxZ = 0.0f;
@@ -280,7 +280,7 @@ namespace ehb
             auto vid = vsg::VertexIndexDraw::create();
             vid->arrays = attributeArrays;
             vid->indices = indicies;
-            vid->indexCount = indicies->size();
+            vid->indexCount = static_cast<uint32_t>(indicies->size());
             vid->instanceCount = 1;
 
             vsg::ComputeBounds computeBounds;

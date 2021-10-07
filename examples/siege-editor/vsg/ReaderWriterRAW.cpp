@@ -27,7 +27,7 @@ namespace ehb
             }
         }
 
-        return vsg::ref_ptr<vsg::Object>();
+        return {};
     }
 
     vsg::ref_ptr<vsg::Object> ReaderWriterRAW::read(std::istream& stream, vsg::ref_ptr<const vsg::Options>) const

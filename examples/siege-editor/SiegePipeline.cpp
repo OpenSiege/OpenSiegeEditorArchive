@@ -7,6 +7,7 @@
 #include "io/FileNameMap.hpp"
 #include "io/IFileSys.hpp"
 
+#include "vsg/ReaderWriterASP.hpp"
 #include "vsg/ReaderWriterRAW.hpp"
 #include "vsg/ReaderWriterRegion.hpp"
 #include "vsg/ReaderWriterSNO.hpp"
@@ -130,7 +131,8 @@ void main() {
             ReaderWriterRAW::create(fileSys, fileNameMap),
             ReaderWriterSNO::create(fileSys, fileNameMap),
             ReaderWriterSiegeNodeList::create(fileSys, fileNameMap),
-            ReaderWriterRegion::create(fileSys, fileNameMap)
+            ReaderWriterRegion::create(fileSys, fileNameMap),
+            ReaderWriterASP::create(fileSys, fileNameMap)
 
         };
 

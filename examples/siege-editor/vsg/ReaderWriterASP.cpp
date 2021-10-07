@@ -1,18 +1,22 @@
 
 #include "ReaderWriterASP.hpp"
 
+#include <vsg/io/read.h>
+#include <vsg/state/PipelineLayout.h>
+
 //#include <osgDB/FileNameUtils>
 //#include <osgDB/FileUtils>
 #include "io/BinaryReader.hpp"
+#include "io/FileNameMap.hpp"
 #include "io/IFileSys.hpp"
 #include "vsg/AspectImpl.hpp"
-#include <vsg/io/read.h>
 
 namespace ehb
 {
     ReaderWriterASP::ReaderWriterASP(IFileSys& fileSys, FileNameMap& fileNameMap) :
         fileSys(fileSys), fileNameMap(fileNameMap)
     {
+        log = spdlog::get("log");
     }
 
     vsg::ref_ptr<vsg::Object> ReaderWriterASP::read(const std::string& filename, const vsg::ref_ptr<const vsg::Options> options) const
@@ -31,12 +35,19 @@ namespace ehb
 
         return readNode(*stream, options);
 #endif
+        if (auto fullFilePath = fileNameMap.findDataFile(filename); !fullFilePath.empty())
+        {
+            if (auto file = fileSys.createInputStream(fullFilePath + ".asp"); file != nullptr)
+            {
+                return read(*file, options);
+            }
+        }
+
         return {};
     }
 
     vsg::ref_ptr<vsg::Object> ReaderWriterASP::read(std::istream& stream, vsg::ref_ptr<const vsg::Options> options) const
     {
-#if 0
         ByteArray data((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
         BinaryReader reader(data);
 
@@ -206,7 +217,7 @@ namespace ehb
 
                     // Float UVs:
                     corner.texCoord = reader.readVec2();
-                    corner.texCoord.y() = 1 - corner.texCoord.y();
+                    corner.texCoord.y = corner.texCoord.y;
                 }
             }
             else if (chunkId == "WCRN")
@@ -221,7 +232,7 @@ namespace ehb
                 {
                     auto& wCorner = mesh.wCorners[c];
 
-                    wCorner.pos = reader.readVec3();
+                    wCorner.position = reader.readVec3();
                     wCorner.weight = reader.readQuat();
 
                     wCorner.bone[0] = reader.readUInt8();
@@ -239,7 +250,7 @@ namespace ehb
                     wCorner.color[3] = reader.readUInt8();
 
                     wCorner.texCoord = reader.readVec2();
-                    wCorner.texCoord.y() = 1 - wCorner.texCoord.y();
+                    wCorner.texCoord.y = wCorner.texCoord.y;
 
                     /* TODO
                     // remove null bone/weights
@@ -339,8 +350,9 @@ namespace ehb
             }
         }
 
-        return new Aspect(std::move(aspectImpl));
-#endif
-        return {};
+        aspectImpl->pipelineLayout = options->getObject<vsg::PipelineLayout>("PipelineLayout");
+        aspectImpl->options = options;
+
+        return Aspect::create(std::move(aspectImpl));
     }
 } // namespace ehb

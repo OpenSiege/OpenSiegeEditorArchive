@@ -29,6 +29,7 @@ set(SOURCES
     vsg/ReaderWriterRegion.cpp
     vsg/ReaderWriterSiegeNodeList.cpp
     vsg/ReaderWriterSNO.cpp 
+    vsg/Aspect.cpp
     vsg/ReaderWriterASP.cpp
    
     io/FileNameMap.cpp
