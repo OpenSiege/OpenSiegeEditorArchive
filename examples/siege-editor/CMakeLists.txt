@@ -29,13 +29,15 @@ set(SOURCES
     vsg/ReaderWriterRegion.cpp
     vsg/ReaderWriterSiegeNodeList.cpp
     vsg/ReaderWriterSNO.cpp 
+    vsg/ReaderWriterASP.cpp
    
     io/FileNameMap.cpp
     io/Fuel.cpp
     io/FuelParser.cpp
     io/FuelScanner.cpp
     io/LocalFileSys.cpp
-    
+    io/BinaryReader.cpp
+
     cfg/ArgsConfig.cpp
     cfg/RegistryConfig.cpp
     cfg/SteamConfig.cpp

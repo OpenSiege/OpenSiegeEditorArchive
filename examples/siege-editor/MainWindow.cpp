@@ -57,6 +57,8 @@ namespace ehb
                 interesection(*lastPointerEvent);
                 if (!lastIntersection) return;
 
+                log->info("adding some geo");
+
                 vsg::GeometryInfo info;
                 info.position = vsg::vec3(lastIntersection.worldIntersection);
                 info.dx.set(scale, 0.0f, 0.0f);
@@ -265,7 +267,7 @@ namespace ehb
 
             auto builder = vsg::Builder::create();
             builder->setup(window, camera->viewportState);
-            viewer->addEventHandler(IntersectionHandler::create(builder, camera, vsg_scene, 10000.0f, systems.options));
+            viewer->addEventHandler(IntersectionHandler::create(builder, camera, vsg_sno, 10000.0f, systems.options));
 
             // add trackball to enable mouse driven camera view control.
             viewer->addEventHandler(vsg::Trackball::create(camera));
