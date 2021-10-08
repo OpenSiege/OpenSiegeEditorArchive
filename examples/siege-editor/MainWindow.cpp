@@ -6,10 +6,10 @@
 
 #include <spdlog/spdlog.h>
 
+#include "IntersectionHandler.hpp"
 #include "SiegePipeline.hpp"
 #include "cfg/WritableConfig.hpp"
 #include "world/SiegeNode.hpp"
-#include "IntersectionHandler.hpp"
 
 // work-around for weird VK_NO_PROTOTYPES issue with Qt
 #include <vsg/viewer/Viewer.h>
@@ -57,8 +57,6 @@ namespace ehb
             g.traverse(*this);
         }
     };
-
-
 
 } // namespace ehb
 
