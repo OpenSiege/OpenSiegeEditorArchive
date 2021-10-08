@@ -6,9 +6,9 @@
 #include <vsg/core/Inherit.h>
 #include <vsg/core/Visitor.h>
 
-#include <vsg/viewer/Camera.h>
 #include <vsg/nodes/Group.h>
 #include <vsg/traversals/LineSegmentIntersector.h>
+#include <vsg/viewer/Camera.h>
 
 #include "SiegePipeline.hpp"
 
@@ -47,4 +47,4 @@ namespace ehb
         vsg::ref_ptr<vsg::PointerEvent> lastPointerEvent;
         vsg::LineSegmentIntersector::Intersection lastIntersection;
     };
-}
+} // namespace ehb

@@ -7,7 +7,7 @@
 #include <vsg/maths/transform.h> // required for type deduction of inverse
 
 namespace ehb
-{    
+{
     void SiegeNodeMesh::connect(vsg::MatrixTransform* targetNode, uint32_t targetDoor, vsg::MatrixTransform* connectNode, uint32_t connectDoor)
     {
         auto log = spdlog::get("log");
@@ -26,7 +26,7 @@ namespace ehb
             return;
         }
 
-        const vsg::dmat4* m1 = nullptr, * m2 = nullptr;
+        const vsg::dmat4 *m1 = nullptr, *m2 = nullptr;
 
         for (const auto& entry : targetMesh->doorXform)
         {
@@ -101,7 +101,7 @@ namespace ehb
             return;
         }
 
-        const vsg::dmat4* m1 = nullptr, * m2 = nullptr;
+        const vsg::dmat4 *m1 = nullptr, *m2 = nullptr;
 
         for (const auto& entry : targetMesh->doorXform)
         {
@@ -157,4 +157,4 @@ namespace ehb
         // "Hold on to your butts." - Ray Arnold
         connectRegion->matrix = xform;
     }
-}
+} // namespace ehb

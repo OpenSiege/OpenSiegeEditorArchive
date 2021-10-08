@@ -77,4 +77,4 @@ namespace ehb
         loadandcompile->loadRequest("m_c_gah_fg_pos_a1", t1, options);
         scenegraph->addChild(t1);
     }
-}
+} // namespace ehb

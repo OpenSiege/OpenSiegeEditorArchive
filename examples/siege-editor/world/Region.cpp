@@ -18,4 +18,4 @@ namespace ehb
 
         addChild(objects);
     }
-}
+} // namespace ehb

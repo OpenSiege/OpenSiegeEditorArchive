@@ -27,4 +27,4 @@ namespace ehb
     private:
         std::vector<std::pair<uint32_t, vsg::dmat4>> doorXform;
     };
-}
+} // namespace ehb

@@ -4,12 +4,12 @@
 #include <unordered_map>
 
 #include <vsg/core/Visitor.h>
-#include <vsg/nodes/MatrixTransform.h>
 #include <vsg/maths/transform.h>
+#include <vsg/nodes/MatrixTransform.h>
 
 #include "io/Fuel.hpp"
-#include "world/SiegeNode.hpp"
 #include "vsg/Aspect.hpp"
+#include "world/SiegeNode.hpp"
 
 namespace ehb
 {
@@ -21,9 +21,9 @@ namespace ehb
 
         GuidToXformMap& map;
 
-        GenerateGlobalGuidToNodeXformMap(GuidToXformMap& map) : map(map)
+        GenerateGlobalGuidToNodeXformMap(GuidToXformMap& map) :
+            map(map)
         {
-
         }
 
         void apply(vsg::Node& node)
@@ -37,7 +37,8 @@ namespace ehb
             // this should be guaranteed - if this even crashes then something went wrong with the setup of the nodes
             if (auto sno = t.children[0].cast<SiegeNodeMesh>())
             {
-                uint32_t guid; t.getValue("guid", guid);
+                uint32_t guid;
+                t.getValue("guid", guid);
                 map.emplace(guid, &t);
             }
 
@@ -45,14 +46,14 @@ namespace ehb
         }
     };
 
-
     struct CalculateAndPlaceObjects : public vsg::Visitor
     {
         using vsg::Visitor::apply;
 
         GuidToXformMap& map;
 
-        CalculateAndPlaceObjects(GuidToXformMap& map) : map(map) {}
+        CalculateAndPlaceObjects(GuidToXformMap& map) :
+            map(map) {}
 
         void apply(vsg::Node& node)
         {
@@ -66,8 +67,10 @@ namespace ehb
             if (auto aspect = t.children[0].cast<Aspect>())
             {
                 // local rotation of the object
-                SiegePos pos; t.getValue("position", pos);
-                SiegeRot rot; t.getValue("rotation", rot);
+                SiegePos pos;
+                t.getValue("position", pos);
+                SiegeRot rot;
+                t.getValue("rotation", rot);
 
                 // global rotation of the node this is applied to
                 auto gt = map[pos.guid];
@@ -83,7 +86,6 @@ namespace ehb
     class Region : public vsg::Inherit<vsg::Group, Region>
     {
     public:
-
         Region() = default;
         ~Region() = default;
 
@@ -93,4 +95,4 @@ namespace ehb
 
         GuidToXformMap placedNodeXformMap; // holds the final matrix transform against the node guid
     };
-}
+} // namespace ehb

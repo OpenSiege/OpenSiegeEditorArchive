@@ -14,6 +14,7 @@ macro(add_target_clang_format)
         foreach(EXCLUDE ${ARGS_EXCLUDES})
             list(REMOVE_ITEM FILES_TO_FORMAT ${EXCLUDE})
         endforeach()
+
         add_custom_target(clang-format-editor
             COMMAND ${CLANGFORMAT} -i ${FILES_TO_FORMAT}
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -72,6 +73,8 @@ add_target_clang_format(
         ${CMAKE_CURRENT_SOURCE_DIR}/io/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/vsg/*.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/vsg/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/world/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/world/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
 )

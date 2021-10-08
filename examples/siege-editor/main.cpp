@@ -1,7 +1,9 @@
 
+// clang-format off
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+// clang-format on
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
 
