@@ -1,7 +1,7 @@
 
-#include "ReaderWriterSiegeNodeList.hpp"
-#include "io/IFileSys.hpp"
-#include "vsg/ReaderWriterSNO.hpp"
+#include "vsg/ReaderWriterSiegeNodeList.hpp"
+
+#include "world/SiegeNode.hpp"
 
 #include "SiegePipeline.hpp"
 

@@ -8,7 +8,7 @@
 
 #include "SiegePipeline.hpp"
 #include "cfg/WritableConfig.hpp"
-#include "vsg/ReaderWriterSNO.hpp"
+#include "world/SiegeNode.hpp"
 
 // work-around for weird VK_NO_PROTOTYPES issue with Qt
 #include <vsg/viewer/Viewer.h>

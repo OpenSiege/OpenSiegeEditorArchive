@@ -44,6 +44,8 @@ set(SOURCES
     cfg/SteamConfig.cpp
     cfg/UserConfig.cpp
     cfg/WritableConfig.cpp
+
+    world/SiegeNode.cpp
     
     MainWindow.cpp
     SiegePipeline.cpp

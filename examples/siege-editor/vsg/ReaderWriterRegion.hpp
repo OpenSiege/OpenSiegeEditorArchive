@@ -3,7 +3,7 @@
 
 #include "io/FileNameMap.hpp"
 #include <vsg/io/ReaderWriter.h>
-#include <vsg/ReaderWriterSNO.hpp>
+#include "world/SiegeNode.hpp"
 #include "vsg/Aspect.hpp"
 #include <vsg/nodes/Group.h>
 #include <vsg/nodes/MatrixTransform.h>
