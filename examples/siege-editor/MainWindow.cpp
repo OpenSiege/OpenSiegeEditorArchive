@@ -39,66 +39,18 @@ namespace ehb
 
         std::shared_ptr<spdlog::logger> log;
 
-        IntersectionHandler(vsg::ref_ptr<vsg::Builder> in_builder, vsg::ref_ptr<vsg::Camera> in_camera, vsg::ref_ptr<vsg::Group> in_scenegraph, double in_scale, vsg::ref_ptr<vsg::Options> in_options, vsg::ref_ptr<DynamicLoadAndCompile> lac) :
-            builder(in_builder),
+        IntersectionHandler(vsg::ref_ptr<vsg::Camera> in_camera, vsg::ref_ptr<vsg::Group> in_scenegraph, vsg::ref_ptr<vsg::Options> in_options, vsg::ref_ptr<DynamicLoadAndCompile> lac) :
             options(in_options),
             camera(in_camera),
             scenegraph(in_scenegraph),
-            scale(in_scale),
             loadandcompile(lac)
         {
-            if (scale > 10.0) scale = 10.0;
 
             log = spdlog::get("log");
         }
 
         void apply(vsg::KeyPressEvent& keyPress) override
         {
-            if (lastPointerEvent)
-            {
-                interesection(*lastPointerEvent);
-                if (!lastIntersection) return;
-
-                log->info("adding some geo");
-
-                vsg::GeometryInfo info;
-                info.position = vsg::vec3(lastIntersection.worldIntersection);
-                info.dx.set(scale, 0.0f, 0.0f);
-                info.dy.set(0.0f, scale, 0.0f);
-                info.dz.set(0.0f, 0.0f, scale);
-
-                // info.image = vsg::read_cast<vsg::Data>("textures/lz.vsgb", options);
-
-                auto t1 = vsg::MatrixTransform::create();
-                t1->matrix = vsg::translate(lastIntersection.worldIntersection);
-                loadandcompile->loadRequest("m_c_gah_fg_pos_a1", t1, options);
-                scenegraph->addChild(t1);
-
-                if (keyPress.keyBase == 'b')
-                {
-                    scenegraph->addChild(builder->createBox(info));
-                }
-                else if (keyPress.keyBase == 'q')
-                {
-                    scenegraph->addChild(builder->createQuad(info));
-                }
-                else if (keyPress.keyBase == 'c')
-                {
-                    scenegraph->addChild(builder->createCylinder(info));
-                }
-                else if (keyPress.keyBase == 'p')
-                {
-                    scenegraph->addChild(builder->createCapsule(info));
-                }
-                else if (keyPress.keyBase == 's')
-                {
-                    scenegraph->addChild(builder->createSphere(info));
-                }
-                else if (keyPress.keyBase == 'n')
-                {
-                    scenegraph->addChild(builder->createCone(info));
-                }
-            }
         }
 
         void apply(vsg::ButtonPressEvent& buttonPressEvent) override
@@ -165,6 +117,11 @@ namespace ehb
             }
 
             lastIntersection = intersector->intersections.front();
+
+            auto t1 = vsg::MatrixTransform::create();
+            t1->matrix = vsg::translate(lastIntersection.worldIntersection);
+            loadandcompile->loadRequest("m_c_gah_fg_pos_a1", t1, options);
+            scenegraph->addChild(t1);
         }
 
     protected:
@@ -274,9 +231,7 @@ namespace ehb
 
             dynamic_load_and_compile = DynamicLoadAndCompile::create(window, viewportState, viewer->status);
 
-            auto builder = vsg::Builder::create();
-            builder->setup(window, camera->viewportState);
-            viewer->addEventHandler(IntersectionHandler::create(builder, camera, vsg_sno, 10000.0f, systems.options, dynamic_load_and_compile));
+            viewer->addEventHandler(IntersectionHandler::create(camera, vsg_sno, systems.options, dynamic_load_and_compile));
 
             // add trackball to enable mouse driven camera view control.
             viewer->addEventHandler(vsg::Trackball::create(camera));
