@@ -33,17 +33,19 @@ namespace ehb
         vsg::ref_ptr<vsg::Options> options;
         vsg::ref_ptr<vsg::Camera> camera;
         vsg::ref_ptr<vsg::Group> scenegraph;
+        vsg::ref_ptr<DynamicLoadAndCompile> loadandcompile;
         double scale = 1.0;
         bool verbose = true;
 
         std::shared_ptr<spdlog::logger> log;
 
-        IntersectionHandler(vsg::ref_ptr<vsg::Builder> in_builder, vsg::ref_ptr<vsg::Camera> in_camera, vsg::ref_ptr<vsg::Group> in_scenegraph, double in_scale, vsg::ref_ptr<vsg::Options> in_options) :
+        IntersectionHandler(vsg::ref_ptr<vsg::Builder> in_builder, vsg::ref_ptr<vsg::Camera> in_camera, vsg::ref_ptr<vsg::Group> in_scenegraph, double in_scale, vsg::ref_ptr<vsg::Options> in_options, vsg::ref_ptr<DynamicLoadAndCompile> lac) :
             builder(in_builder),
             options(in_options),
             camera(in_camera),
             scenegraph(in_scenegraph),
-            scale(in_scale)
+            scale(in_scale),
+            loadandcompile(lac)
         {
             if (scale > 10.0) scale = 10.0;
 
@@ -66,6 +68,11 @@ namespace ehb
                 info.dz.set(0.0f, 0.0f, scale);
 
                 // info.image = vsg::read_cast<vsg::Data>("textures/lz.vsgb", options);
+
+                auto t1 = vsg::MatrixTransform::create();
+                t1->matrix = vsg::translate(lastIntersection.worldIntersection);
+                loadandcompile->loadRequest("m_c_gah_fg_pos_a1", t1, options);
+                scenegraph->addChild(t1);
 
                 if (keyPress.keyBase == 'b')
                 {
@@ -266,29 +273,23 @@ namespace ehb
             viewer->addEventHandler(vsg::CloseHandler::create(viewer));
 
             {
-                if (auto mesh = vsg::read_cast<vsg::Group>("m_c_gah_fg_pos_a1", systems.options); mesh != nullptr)
-                {
-                    vsg_sno->addChild(mesh);
-
-                    spdlog::get("log")->info("added mesh");
-                }
-                //if (auto mesh = vsg::read("m_c_gah_fg_pos_a1", nullptr).cast<vsg::Group>(); mesh != nullptr)
+                //if (auto mesh = vsg::read_cast<vsg::Group>("m_c_gah_fg_pos_a1", systems.options); mesh != nullptr)
                 //{
-                //   vsg_scene->addChild(mesh);
+                    //vsg_sno->addChild(mesh);
                 //}
             }
 
+            dynamic_load_and_compile = DynamicLoadAndCompile::create(window, viewportState, viewer->status);
+
             auto builder = vsg::Builder::create();
             builder->setup(window, camera->viewportState);
-            viewer->addEventHandler(IntersectionHandler::create(builder, camera, vsg_sno, 10000.0f, systems.options));
+            viewer->addEventHandler(IntersectionHandler::create(builder, camera, vsg_sno, 10000.0f, systems.options, dynamic_load_and_compile));
 
             // add trackball to enable mouse driven camera view control.
             viewer->addEventHandler(vsg::Trackball::create(camera));
 
             auto commandGraph = vsg::createCommandGraphForView(window, camera, vsg_scene);
             viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
-
-            dynamic_load_and_compile = DynamicLoadAndCompile::create(window, viewportState, viewer->status);
 
             viewer->compile();
 

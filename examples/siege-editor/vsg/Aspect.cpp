@@ -104,6 +104,8 @@ namespace ehb
                         auto bindDescriptorSets = vsg::BindDescriptorSets::create(VK_PIPELINE_BIND_POINT_GRAPHICS, const_cast<vsg::PipelineLayout*>(d->pipelineLayout), 0, vsg::DescriptorSets{descriptorSet});
                         assert(bindDescriptorSets != nullptr);
 
+                        spdlog::get("log")->info("added descriptor set");
+
                         addChild(bindDescriptorSets);
                     }
 
