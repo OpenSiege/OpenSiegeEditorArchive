@@ -1,11 +1,12 @@
 
 #include "ReaderWriterRegion.hpp"
-#include "io/IFileSys.hpp"
-#include "vsg/ReaderWriterSNO.hpp"
-#include "vsg/Aspect.hpp"
 
-// i'm lazy
-#include "vsg/all.h"
+#include <vsg/io/read.h>
+
+#include "io/IFileSys.hpp"
+#include "world/SiegeNode.hpp"
+#include "world/Region.hpp"
+#include "vsg/Aspect.hpp"
 
 namespace ehb
 {
@@ -13,7 +14,7 @@ namespace ehb
         fileSys(fileSys), fileNameMap(fileNameMap)
     {
         log = spdlog::get("log");
-        log->set_level(spdlog::level::debug);
+        //log->set_level(spdlog::level::debug);
     }
 
     vsg::ref_ptr<vsg::Object> ReaderWriterRegion::read(const vsg::Path& filename, vsg::ref_ptr<const vsg::Options> options) const

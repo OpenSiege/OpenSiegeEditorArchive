@@ -46,6 +46,7 @@ set(SOURCES
     cfg/WritableConfig.cpp
 
     world/SiegeNode.cpp
+    world/Region.cpp
     
     MainWindow.cpp
     SiegePipeline.cpp
