@@ -13,6 +13,7 @@ namespace ehb
         fileSys(fileSys), fileNameMap(fileNameMap)
     {
         log = spdlog::get("log");
+        log->set_level(spdlog::level::debug);
     }
 
     vsg::ref_ptr<vsg::Object> ReaderWriterRegion::read(const vsg::Path& filename, vsg::ref_ptr<const vsg::Options> options) const
@@ -46,6 +47,8 @@ namespace ehb
             log->info("this map does not have difficulties so adjusting path to {}", objectspath);
         }
 
+        auto objectFiles = { "actor.gas", "command.gas", "container.gas", "elevator.gas", "emitter.gas", "generator.gas", "interactive.gas", "inventory.gas", "non_interactive.gas", "special.gas", "test.gas", "trap.gas" };
+
         auto noninteractivedotgas = objectspath + "/non_interactive.gas";
         auto actordotgas = objectspath + "/actor.gas";
 
@@ -67,18 +70,16 @@ namespace ehb
             {
                 region->setNodeData(nodeData);
 
-                { // load up actors as a test
+                auto objects = vsg::Group::create();
 
-                    if (actor != nullptr)
+                { // load all objects
+                    for (const auto& file : objectFiles)
                     {
-                        //if (Fuel doc; doc.load(*actor))
-                        if (Fuel doc; doc.load(*noninteractive))
+                        if (auto doc = fileSys.loadGasFile(objectspath + "/" + file))
                         {
-                            spdlog::get("log")->info("loading {}", actordotgas);
+                            log->debug("loading {}", objectspath + "/" + file);
 
-                            auto objects = vsg::Group::create();
-
-                            for (const auto& node : doc.eachChild())
+                            for (const auto& node : doc->eachChild())
                             {
                                 if (auto asp = vsg::read_cast<Aspect>("m_i_glb_object-waypoint", options))
                                 {
@@ -98,14 +99,10 @@ namespace ehb
                                     objects->addChild(t);
                                 }
                             }
-
-                            region->setObjects(objects);
                         }
                     }
-                    else
-                    {
-                        spdlog::get("log")->warn("{} is unavailable for this map", actordotgas);
-                    }
+
+                    region->setObjects(objects);
                 }
 
                 return region;
