@@ -50,6 +50,7 @@ set(SOURCES
     world/Region.cpp
     
     game/ContentDb.cpp
+    game/ObjectDb.cpp
     
     MainWindow.cpp
     SiegePipeline.cpp
