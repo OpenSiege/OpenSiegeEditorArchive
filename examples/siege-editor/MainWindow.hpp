@@ -52,6 +52,8 @@ namespace ehb
         void currentChanged(const QModelIndex& current, const QModelIndex& previous);
 
         void loadNewMap();
+
+        void saveMap();
     };
 
     inline void MainWindow::closeEvent(QCloseEvent* event)

@@ -8,6 +8,7 @@
 
 #include "SiegePipeline.hpp"
 #include "cfg/WritableConfig.hpp"
+#include "vsg/ReaderWriterSNO.hpp"
 
 // work-around for weird VK_NO_PROTOTYPES issue with Qt
 #include <vsg/viewer/Viewer.h>
@@ -26,6 +27,36 @@ namespace fs = std::filesystem;
 
 namespace ehb
 {
+    struct SaveToGasVisitor : public vsg::Visitor
+    {
+        using vsg::Visitor::apply;
+
+        void apply(vsg::Object& object)
+        {
+            object.traverse(*this);
+        }
+
+        void apply(vsg::Node& node)
+        {
+            node.traverse(*this);
+        }
+
+        void apply(vsg::MatrixTransform& t)
+        {
+            t.traverse(*this);
+        }
+
+        void apply(vsg::Group& g)
+        {
+            if (auto sno = g.cast<SiegeNodeMesh>() != nullptr)
+            {
+                // spdlog::get("log")->info("siege node mesh");
+            }
+
+            g.traverse(*this);
+        }
+    };
+
     class IntersectionHandler : public vsg::Inherit<vsg::Visitor, IntersectionHandler>
     {
     public:
@@ -34,7 +65,6 @@ namespace ehb
         vsg::ref_ptr<vsg::Camera> camera;
         vsg::ref_ptr<vsg::Group> scenegraph;
         vsg::ref_ptr<DynamicLoadAndCompile> loadandcompile;
-        double scale = 1.0;
         bool verbose = true;
 
         std::shared_ptr<spdlog::logger> log;
@@ -148,7 +178,7 @@ namespace ehb
         windowTraits->debugLayer = true;
         windowTraits->apiDumpLayer = false;
 
-        // since we are using QSettings make sure we just read inthe size of the main window
+        // since we are using QSettings make sure we just read in the size of the main window
         windowTraits->width = size().width();
         windowTraits->height = size().height();
 
@@ -163,10 +193,11 @@ namespace ehb
         auto widget = QWidget::createWindowContainer(viewerWindow, this);
         setCentralWidget(widget);
 
-        ui.actionSave->setDisabled(true);
+        //ui.actionSave->setDisabled(true);
         ui.actionSave_As->setDisabled(true);
 
         connect(ui.actionOpen, &QAction::triggered, this, &MainWindow::loadNewMap);
+        connect(ui.actionSave, &QAction::triggered, this, &MainWindow::saveMap);
 
         if (systems.config.getString("bits", "").empty())
         {
@@ -292,5 +323,11 @@ namespace ehb
             dynamic_load_and_compile->loadRequest(dialog.getFullPathForSelectedRegion() + ".region", t1, systems.options);
             vsg_sno->addChild(t1);
         }
+    }
+
+    void MainWindow::saveMap()
+    {
+        SaveToGasVisitor save;
+        vsg_sno->accept(save);
     }
 } // namespace ehb

@@ -136,6 +136,8 @@ void main() {
 
         };
 
+        options->objectCache = vsg::ObjectCache::create();
+
         SiegeNodePipeline::SetupPipeline();
 
         // we currently have two ways to access this variable

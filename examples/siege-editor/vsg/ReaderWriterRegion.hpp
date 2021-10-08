@@ -4,8 +4,11 @@
 #include "io/FileNameMap.hpp"
 #include <vsg/io/ReaderWriter.h>
 #include <vsg/ReaderWriterSNO.hpp>
+#include "vsg/Aspect.hpp"
 #include <vsg/nodes/Group.h>
 #include <vsg/nodes/MatrixTransform.h>
+
+#include "io/Fuel.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -22,11 +25,6 @@ namespace ehb
         GenerateGlobalGuidToNodeXformMap(GuidToXformMap& map) : map(map)
         {
 
-        }
-
-        void apply(vsg::Object& object)
-        {
-            object.traverse(*this);
         }
 
         void apply(vsg::Node& node)
@@ -49,10 +47,39 @@ namespace ehb
 
             t.traverse(*this);
         }
+    };
 
-        void apply(vsg::Group& g)
+
+    struct CalculateAndPlaceObjects : public vsg::Visitor
+    {
+        using vsg::Visitor::apply;
+
+        GuidToXformMap& map;
+
+        CalculateAndPlaceObjects(GuidToXformMap& map) : map(map) {}
+
+        void apply(vsg::Node& node)
         {
-            g.traverse(*this);
+            node.traverse(*this);
+        }
+
+        void apply(vsg::MatrixTransform& t)
+        {
+            // ReaderWriterSiegeNodeList
+            // this should be guaranteed - if this even crashes then something went wrong with the setup of the nodes
+            if (auto aspect = t.children[0].cast<Aspect>())
+            {
+                // local rotation of the object
+                SiegePos pos; t.getValue("position", pos);
+                SiegeRot rot; t.getValue("rotation", rot);
+
+                // global rotation of the node this is applied to
+                auto gt = map[pos.guid];
+
+                t.matrix = gt->matrix * vsg::dmat4(vsg::translate(pos.pos));
+            }
+
+            t.traverse(*this);
         }
     };
 
@@ -70,6 +97,14 @@ namespace ehb
             nodes->accept(visitor);
 
             addChild(nodes);
+        }
+
+        void setObjects(vsg::ref_ptr<vsg::Group> objects)
+        {
+            CalculateAndPlaceObjects visitor(placedNodeXformMap);
+            objects->accept(visitor);
+
+            addChild(objects);
         }
 
         GuidToXformMap placedNodeXformMap; // holds the final matrix transform against the node guid

@@ -31,11 +31,26 @@ namespace ehb
         auto path = vsg::removeExtension(filename);
         auto maindotgas = path + "/main.gas";
         auto nodesdotgas = path + "/terrain_nodes/nodes.gas";
-        auto noninteractivedotgas = path + "/objects/regular/non_interactive.gas";
-        auto actordotgas = path + "/objects/actor.gas";
 
         InputStream main = fileSys.createInputStream(maindotgas);
         InputStream nodes = fileSys.createInputStream(nodesdotgas);
+       
+        // default our lookup to maps with difficulties since retail maps have them
+        //! TODO: remove when difficulties actually do something
+        auto objectspath = path + "/objects/regular";
+
+        // sanity check if we have difficulties. if we don't then adjust the lookup
+        if (!fileSys.loadGasFile(objectspath + "/actor.gas"))
+        {
+            objectspath = path + "/objects";
+            log->info("this map does not have difficulties so adjusting path to {}", objectspath);
+        }
+
+        auto noninteractivedotgas = objectspath + "/non_interactive.gas";
+        auto actordotgas = objectspath + "/actor.gas";
+
+        // objects can fall under difficulty folders - this should probably be a folder check or something
+        //if
         InputStream noninteractive = fileSys.createInputStream(noninteractivedotgas);
         InputStream actor = fileSys.createInputStream(actordotgas);
 
@@ -56,9 +71,12 @@ namespace ehb
 
                     if (actor != nullptr)
                     {
-                        if (Fuel doc; doc.load(*actor))
+                        //if (Fuel doc; doc.load(*actor))
+                        if (Fuel doc; doc.load(*noninteractive))
                         {
                             spdlog::get("log")->info("loading {}", actordotgas);
+
+                            auto objects = vsg::Group::create();
 
                             for (const auto& node : doc.eachChild())
                             {
@@ -73,12 +91,15 @@ namespace ehb
                                         auto pos = p->valueAsSiegePos("position");
                                         auto rot = p->valueAsSiegePos("rotation");
 
-                                        t->matrix = vsg::translate(pos.pos);
+                                        t->setValue("position", pos);
+                                        t->setValue("rotation", rot);
                                     }
 
-                                    region->addChild(t);
+                                    objects->addChild(t);
                                 }
                             }
+
+                            region->setObjects(objects);
                         }
                     }
                     else
