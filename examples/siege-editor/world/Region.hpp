@@ -87,21 +87,9 @@ namespace ehb
         Region() = default;
         ~Region() = default;
 
-        void setNodeData(vsg::ref_ptr<vsg::Group> nodes)
-        {
-            GenerateGlobalGuidToNodeXformMap visitor(placedNodeXformMap);
-            nodes->accept(visitor);
+        void setNodeData(vsg::ref_ptr<vsg::Group> nodes);
 
-            addChild(nodes);
-        }
-
-        void setObjects(vsg::ref_ptr<vsg::Group> objects)
-        {
-            CalculateAndPlaceObjects visitor(placedNodeXformMap);
-            objects->accept(visitor);
-
-            addChild(objects);
-        }
+        void setObjects(vsg::ref_ptr<vsg::Group> objects);
 
         GuidToXformMap placedNodeXformMap; // holds the final matrix transform against the node guid
     };
