@@ -12,8 +12,8 @@
 #include <vsg/nodes/MatrixTransform.h>
 #include <vsg/nodes/VertexIndexDraw.h>
 
-#include <vsg/state/DescriptorSet.h>
 #include <vsg/state/DescriptorImage.h>
+#include <vsg/state/DescriptorSet.h>
 #include <vsg/traversals/ComputeBounds.h>
 
 #include "io/FileNameMap.hpp"
