@@ -321,6 +321,12 @@ void main() {
         //vsg::write(request->loaded, "testascii.vsgt");
         //vsg::write(request->loaded, "testbinary.vsgb");
 
+        // clear out an already loaded region
+        if (request->attachmentPoint->children.size() != 0)
+        {
+            request->attachmentPoint->children.clear();
+        }
+
         request->attachmentPoint->addChild(request->loaded);
     }
 } // namespace ehb

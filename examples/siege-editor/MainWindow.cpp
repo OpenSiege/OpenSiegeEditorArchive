@@ -317,11 +317,7 @@ namespace ehb
         LoadMapDialog dialog(systems.fileSys, this);
         if (dialog.exec() == QDialog::Accepted)
         {
-            vsg_sno->children.clear();
-
-            auto t1 = vsg::MatrixTransform::create();
-            dynamic_load_and_compile->loadRequest(dialog.getFullPathForSelectedRegion() + ".region", t1, systems.options);
-            vsg_sno->addChild(t1);
+            dynamic_load_and_compile->loadRequest(dialog.getFullPathForSelectedRegion() + ".region", vsg_sno, systems.options);
         }
     }
 
