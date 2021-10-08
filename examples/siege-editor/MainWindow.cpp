@@ -112,7 +112,7 @@ namespace ehb
 
                     verboseOutput << std::endl;
 
-                    spdlog::get("log")->info("{}", verboseOutput.str());
+                    // spdlog::get("log")->info("{}", verboseOutput.str());
                 }
             }
 
@@ -247,7 +247,7 @@ namespace ehb
         viewerWindow->frameCallback = [&](vsgQt::ViewerWindow& vw) {
             if (!vw.viewer || !vw.viewer->advanceToNextFrame()) return false;
 
-            vw.viewer->compile();
+            //vw.viewer->compile();
 
             dynamic_load_and_compile->merge();
 
