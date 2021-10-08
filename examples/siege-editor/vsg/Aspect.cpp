@@ -34,9 +34,6 @@ namespace ehb
             uint32_t f = 0; // track which face the loader is loading across the sub mesh
             for (uint32_t i = 0; i < mesh.textureCount; ++i)
             {
-                // create the geometry which will be drawn
-                // vsg::ref_ptr<vsg::Geometry> geometry = new vsg::Geometry;
-
                 // textures are stored directly against the mesh
                 // TODO: should we store the vsg::Image against AspectImpl?
                 const std::string& imageFilename = d->textureNames[i];
@@ -48,14 +45,6 @@ namespace ehb
 
                 // this has to match the incoming pipe which was defined by the siege nodes
                 auto attributeArrays = vsg::DataList{vertices, colors, texCoords};
-
-#if 0
-                    // this is replaced by the attributeArrays call in vsg
-                    geometry->setVertexArray(vertices);
-                    geometry->setNormalArray(normals, vsg::Array::BIND_PER_VERTEX);
-                    geometry->setTexCoordArray(0, texCoords);
-                    geometry->setColorArray(colors, vsg::Array::BIND_PER_VERTEX);
-#endif
 
                 for (uint32_t cornerCounter = 0; cornerCounter < mesh.cornerCount; ++cornerCounter)
                 {
@@ -69,10 +58,8 @@ namespace ehb
                 }
 
                 auto elements = vsg::uintArray::create(mesh.matInfo[i].faceSpan * 3);
-                //vsg::ref_ptr<vsg::DrawElementsUInt> elements = new vsg::DrawElementsUInt(GL_TRIANGLES);
-                //geometry->addPrimitiveSet(elements);
 
-                ///for (uint32_t fpt = 0; fpt < mesh.matInfo[i].faceSpan; ++fpt)
+                // array is already allocated so we iterate over a full face (3 points) at a time
                 for (uint32_t fpt = 0; fpt < mesh.matInfo[i].faceSpan * 3; fpt += 3)
                 {
                     (*elements)[fpt] = mesh.faceInfo.cornerIndex.at(f / 3).index[0] + mesh.faceInfo.cornerStart[i];
@@ -81,15 +68,6 @@ namespace ehb
 
                     f += 3;
                 }
-
-                // make sure to calculate our bounding boxes
-                //geometry->setInitialBound(geometry->computeBoundingBox());
-
-                // by default we draw static geometry
-                //pseudoRoot->addChild(geometry);
-
-                // make sure the skeleton is ready to go if we need it
-                //skeleton->addChild(rigGeometry);
 
                 if (auto textureData = vsg::read_cast<vsg::Data>(imageFilename, d->options); textureData != nullptr)
                 {
