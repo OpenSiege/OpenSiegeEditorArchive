@@ -4,8 +4,6 @@
 #include <vsg/io/read.h>
 #include <vsg/state/PipelineLayout.h>
 
-//#include <osgDB/FileNameUtils>
-//#include <osgDB/FileUtils>
 #include "io/BinaryReader.hpp"
 #include "io/FileNameMap.hpp"
 #include "io/IFileSys.hpp"

@@ -272,13 +272,6 @@ namespace ehb
             // add close handler to respond the close window button and pressing escape
             viewer->addEventHandler(vsg::CloseHandler::create(viewer));
 
-            {
-                //if (auto mesh = vsg::read_cast<vsg::Group>("m_c_gah_fg_pos_a1", systems.options); mesh != nullptr)
-                //{
-                    //vsg_sno->addChild(mesh);
-                //}
-            }
-
             dynamic_load_and_compile = DynamicLoadAndCompile::create(window, viewportState, viewer->status);
 
             auto builder = vsg::Builder::create();

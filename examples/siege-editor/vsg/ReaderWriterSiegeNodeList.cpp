@@ -106,20 +106,6 @@ namespace ehb
                         // temp
                         mesh->setValue("name", vsg::simpleFilename(meshFileName));
 
-                        // since our data cache is enabled, we should be getting the same pointer back every time we load this node
-                        // from here we can check for the instance data that should be directly associated with it
-                        // on the first load we have to make sure we actually create and store the instance data
-#if 0
-                        vsg::ref_ptr<InstanceData> instanceData (mesh->getObject<InstanceData>("InstanceData"));
-                        if (instanceData == nullptr)
-                        {
-                            instanceData = InstanceData::create();
-                            mesh->setObject("InstanceData", instanceData);
-
-                            uniqueMeshes.emplace(mesh.cast<SiegeNodeMesh>());
-                        }
-#endif
-
                         auto xform = vsg::MatrixTransform::create();
 
 #if 0
@@ -178,71 +164,6 @@ namespace ehb
 
             func(targetGuid);
 
-#if 0
-            // loop all the nodes loaded
-            for (auto const& [nodeGuid, xform] : nodeMap)
-            {
-                std::string mapName;
-                xform->children[0]->getValue("name", mapName);
-                uint32_t guid;
-                xform->getValue("guid", guid);
-
-                // now find a matching node from the first pass and the unique nodes
-                for (auto const& mesh : uniqueMeshes)
-                {
-                    std::string name;
-                    mesh->getValue("name", name);
-                    if (mapName == name)
-                    {
-                        // now store the instance information
-                        mesh->getObject<InstanceData>("InstanceData")->matrices.emplace_back(xform->matrix);
-
-                        vsg::vec4 tmpPos(xform->matrix[3]);
-                        vsg::dquat quat;
-                        auto m = xform->matrix;
-
-                        // https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-                        double tr = m[0][0] + m[1][1] + m[2][2];
-                        if (tr > 0)
-                        {
-                            double S = sqrt(tr + 1.0) * 2;
-                            quat.set((m[2][1] - m[1][2]) / S, (m[0][2] - m[2][0]) / S, (m[1][0] - m[0][1]) / S, 0.25 * S);
-                        }
-                        else if ((m[0][0] > m[1][1]) && (m[0][0] > m[2][2]))
-                        {
-                            double S = sqrt(1.0 + m[0][0] - m[1][1] - m[2][2]) * 2; // S=4*qx
-                            quat.set(0.25 * S, (m[0][1] + m[1][0]) / S, (m[0][2] + m[2][0]) / S, (m[2][1] - m[1][2]) / S);
-                        }
-                        else if (m[1][1] > m[2][2])
-                        {
-                            double S = sqrt(1.0 + m[1][1] - m[0][0] - m[2][2]) * 2; // S=4*qy
-                            quat.set((m[0][1] + m[1][0]) / S, 0.25 * S, (m[1][2] + m[2][1]) / S, (m[0][2] - m[2][0]) / S);
-                        }
-                        else
-                        {
-                            double S = sqrt(1.0 + m[2][2] - m[0][0] - m[1][1]) * 2; // S=4*qz
-                            quat.set((m[0][2] + m[2][0]) / S, (m[1][2] + m[2][1]) / S, 0.25 * S, (m[1][0] - m[0][1]) / S);
-                        }
-
-                        // constexpr t_mat4<T> mat4_cast(const t_quat<T>& q)
-
-                        // matrix = translate(cp.position) * scale(cp.scale) * mat4_cast(cp.rotation);
-
-                        vsg::dvec3 yup(tmpPos[0], tmpPos[1], tmpPos[2]);
-                        mesh->getObject<InstanceData>("InstanceData")->shader.emplace_back(InstanceData::Data{vsg::dvec3(tmpPos[0], tmpPos[1], tmpPos[2]), quat});
-
-                        //mesh->getObject<InstanceData>("InstanceData")->data.push_back(yup);
-                    }
-                }
-            }
-
-            for (auto const& mesh : uniqueMeshes)
-            {
-                std::string name;
-                mesh->getValue("name", name);
-                // log->info("{} has {} instances", name, mesh->getObject<InstanceData>("InstanceData")->matrices.size());
-            }
-#endif
             log->info("region loaded with {} nodes, targetGuid: 0x{:x}", group->children.size(), targetGuid);
 
             return group;
