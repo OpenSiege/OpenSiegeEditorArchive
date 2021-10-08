@@ -2,9 +2,6 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-// make sure to include vsg headers before qt ones
-#include <vsg/io/Options.h>
-
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
 
