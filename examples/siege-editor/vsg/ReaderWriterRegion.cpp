@@ -4,9 +4,9 @@
 #include <vsg/io/read.h>
 
 #include "io/IFileSys.hpp"
-#include "world/SiegeNode.hpp"
-#include "world/Region.hpp"
 #include "vsg/Aspect.hpp"
+#include "world/Region.hpp"
+#include "world/SiegeNode.hpp"
 
 namespace ehb
 {
@@ -36,7 +36,7 @@ namespace ehb
 
         InputStream main = fileSys.createInputStream(maindotgas);
         InputStream nodes = fileSys.createInputStream(nodesdotgas);
-       
+
         // default our lookup to maps with difficulties since retail maps have them
         //! TODO: remove when difficulties actually do something
         auto objectspath = path + "/objects/regular";
@@ -48,7 +48,7 @@ namespace ehb
             log->info("this map does not have difficulties so adjusting path to {}", objectspath);
         }
 
-        auto objectFiles = { "actor.gas", "command.gas", "container.gas", "elevator.gas", "emitter.gas", "generator.gas", "interactive.gas", "inventory.gas", "non_interactive.gas", "special.gas", "test.gas", "trap.gas" };
+        auto objectFiles = {"actor.gas", "command.gas", "container.gas", "elevator.gas", "emitter.gas", "generator.gas", "interactive.gas", "inventory.gas", "non_interactive.gas", "special.gas", "test.gas", "trap.gas"};
 
         auto noninteractivedotgas = objectspath + "/non_interactive.gas";
         auto actordotgas = objectspath + "/actor.gas";

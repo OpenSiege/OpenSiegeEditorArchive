@@ -319,7 +319,7 @@ namespace ehb
                 return defaultValue;
             }
 
-            return std::array<float, 3> { std::stof(values[0]), std::stof(values[1]), std::stof(values[2]) };
+            return std::array<float, 3>{std::stof(values[0]), std::stof(values[1]), std::stof(values[2])};
         }
 
         return defaultValue;
@@ -355,7 +355,7 @@ namespace ehb
                 return defaultValue;
             }
 
-            return std::array<float, 4> { std::stof(values[0]), std::stof(values[1]), std::stof(values[2]), std::stof(values[3]) };
+            return std::array<float, 4>{std::stof(values[0]), std::stof(values[1]), std::stof(values[2]), std::stof(values[3])};
         }
 
         return defaultValue;
@@ -388,7 +388,7 @@ namespace ehb
         return defaultValue;
     }
 
-    SiegeRot FuelBlock::valueAsSiegeRot(const std::string & name, const SiegeRot & defaultValue) const
+    SiegeRot FuelBlock::valueAsSiegeRot(const std::string& name, const SiegeRot& defaultValue) const
     {
         if (const Attribute* attr = attribute(name))
         {
@@ -406,13 +406,13 @@ namespace ehb
                 return defaultValue;
             }
 
-            return SiegeRot{ { std::stof(values[0]), std::stof(values[1]), std::stof(values[2]), std::stof(values[3]) }, std::stoul(values[4], nullptr, 16) };
+            return SiegeRot{{std::stof(values[0]), std::stof(values[1]), std::stof(values[2]), std::stof(values[3])}, std::stoul(values[4], nullptr, 16)};
         }
 
         return defaultValue;
     }
 
-    SiegePos FuelBlock::valueAsSiegePos(const std::string & name, const SiegePos & defaultValue) const
+    SiegePos FuelBlock::valueAsSiegePos(const std::string& name, const SiegePos& defaultValue) const
     {
         if (const Attribute* attr = attribute(name))
         {
@@ -430,7 +430,7 @@ namespace ehb
                 return defaultValue;
             }
 
-            return SiegePos{ { std::stof(values[0]), std::stof(values[1]), std::stof(values[2]) }, std::stoul(values[3], nullptr, 16) };
+            return SiegePos{{std::stof(values[0]), std::stof(values[1]), std::stof(values[2])}, std::stoul(values[3], nullptr, 16)};
         }
 
         return defaultValue;

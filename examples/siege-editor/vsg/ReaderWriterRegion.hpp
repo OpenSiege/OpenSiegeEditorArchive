@@ -2,9 +2,9 @@
 #pragma once
 
 #include "io/FileNameMap.hpp"
-#include <vsg/io/ReaderWriter.h>
-#include "world/SiegeNode.hpp"
 #include "vsg/Aspect.hpp"
+#include "world/SiegeNode.hpp"
+#include <vsg/io/ReaderWriter.h>
 #include <vsg/nodes/Group.h>
 #include <vsg/nodes/MatrixTransform.h>
 
