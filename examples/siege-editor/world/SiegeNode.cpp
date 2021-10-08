@@ -6,7 +6,6 @@
 #include <vsg/maths/quat.h>
 #include <vsg/maths/transform.h> // required for type deduction of inverse
 
-
 namespace ehb
 {    
     void SiegeNodeMesh::connect(vsg::MatrixTransform* targetNode, uint32_t targetDoor, vsg::MatrixTransform* connectNode, uint32_t connectDoor)

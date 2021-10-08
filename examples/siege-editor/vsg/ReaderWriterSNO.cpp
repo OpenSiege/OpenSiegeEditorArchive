@@ -1,27 +1,23 @@
 
 #include "ReaderWriterSNO.hpp"
-#include "ReaderWriterRAW.hpp"
-#include "io/FileNameMap.hpp"
-#include "io/LocalFileSys.hpp"
 
 #include <cassert>
 #include <iostream>
-#include <vsg/commands/BindIndexBuffer.h>
-#include <vsg/commands/BindVertexBuffers.h>
-#include <vsg/commands/Commands.h>
-#include <vsg/commands/Draw.h>
-#include <vsg/commands/DrawIndexed.h>
-#include <vsg/maths/quat.h>
-#include <vsg/maths/transform.h>
-#include <vsg/nodes/Geometry.h>
-#include <vsg/nodes/MatrixTransform.h>
-#include <vsg/nodes/VertexIndexDraw.h>
-#include <vsg/state/DescriptorImage.h>
 
 #include <vsg/io/read.h>
-#include <vsg/state/DescriptorSet.h>
 
+#include <vsg/maths/quat.h>
+#include <vsg/maths/transform.h>
+
+#include <vsg/nodes/MatrixTransform.h>
+#include <vsg/nodes/VertexIndexDraw.h>
+
+#include <vsg/state/DescriptorSet.h>
+#include <vsg/state/DescriptorImage.h>
 #include <vsg/traversals/ComputeBounds.h>
+
+#include "io/FileNameMap.hpp"
+#include "io/LocalFileSys.hpp"
 
 #include "world/SiegeNode.hpp"
 
@@ -269,16 +265,11 @@ namespace ehb
             }
             else
             {
-                std::cout << "No layout passed via options. Mesh will probably render incorrectly." << std::endl;
+                std::cout << "No layout passed via options. We are bailing because the pipeline requires them" << std::endl;
+
+                return {};
             }
 
-#if 0
-            auto commands = vsg::Commands::create();
-            commands->addChild(vsg::BindVertexBuffers::create(0, attributeArrays));
-            commands->addChild(vsg::BindIndexBuffer::create(indicies));
-            commands->addChild(vsg::DrawIndexed::create(indicies->valueCount(), 1, 0, 0, 0));
-            group->addChild(commands);
-#else
             auto vid = vsg::VertexIndexDraw::create();
             vid->arrays = attributeArrays;
             vid->indices = indicies;
@@ -300,7 +291,6 @@ namespace ehb
             }
 
             group->addChild(vid);
-#endif
         }
 
         return group;
