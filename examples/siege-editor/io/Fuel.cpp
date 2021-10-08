@@ -312,15 +312,14 @@ namespace ehb
                 return defaultValue;
             }
 
-            const auto itr1 = value.find(',');
-            const auto itr2 = value.find(',', itr1 + 1);
-            const auto itr3 = value.find(',', itr2 + 1);
+            const std::vector<std::string> values = split(value, ',');
 
-            float x = std::stof(value.substr(0, itr1));
-            float y = std::stof(value.substr(itr1 + 1, itr2 - itr1 - 1));
-            float z = std::stof(value.substr(itr2 + 1, itr3 - itr2 - 1));
+            if (values.size() != 3)
+            {
+                return defaultValue;
+            }
 
-            return std::array<float, 3>{x, y, z};
+            return std::array<float, 3> { std::stof(values[0]), std::stof(values[1]), std::stof(values[2]) };
         }
 
         return defaultValue;
@@ -333,6 +332,30 @@ namespace ehb
             auto value = valueAsFloat3(name);
 
             return vsg::vec3(value[0], value[1], value[2]);
+        }
+
+        return defaultValue;
+    }
+
+    std::array<float, 4> FuelBlock::valueAsFloat4(const std::string& name, std::array<float, 4> defaultValue) const
+    {
+        if (const Attribute* attr = attribute(name))
+        {
+            const std::string& value = valueOf(name);
+
+            if (value.empty())
+            {
+                return defaultValue;
+            }
+
+            const std::vector<std::string> values = split(value, ',');
+
+            if (values.size() != 4)
+            {
+                return defaultValue;
+            }
+
+            return std::array<float, 4> { std::stof(values[0]), std::stof(values[1]), std::stof(values[2]), std::stof(values[3]) };
         }
 
         return defaultValue;
@@ -365,38 +388,9 @@ namespace ehb
         return defaultValue;
     }
 
-#if 0
     SiegeRot FuelBlock::valueAsSiegeRot(const std::string & name, const SiegeRot & defaultValue) const
     {
-        if (const Attribute * attr = attribute(name))
-        {
-            const std::string & value = valueOf(name);
-
-            if (value.empty())
-            {
-                return defaultValue;
-            }
-
-            const auto itr1 = value.find(',');
-            const auto itr2 = value.find(',', itr1 + 1);
-            const auto itr3 = value.find(',', itr2 + 1);
-            const auto itr4 = value.find(',', itr3 + 1);
-
-            float x = std::stof(value.substr(0, itr1));
-            float y = std::stof(value.substr(itr1 + 1, itr2 - itr1 - 1));
-            float z = std::stof(value.substr(itr2 + 1, itr3 - itr2 - 1));
-            float w = std::stof(value.substr(itr3 + 1, itr4 - itr3 - 1));
-            unsigned int node = std::stoul(value.substr(itr4 + 1), nullptr, 16);
-
-            return SiegeRot(x, y, z, w, node);
-        }
-
-        return defaultValue;
-    }
-
-    SiegePos FuelBlock::valueAsSiegePos(const std::string & name, const SiegePos & defaultValue) const
-    {
-        if (const Attribute * attr = attribute(name))
+        if (const Attribute* attr = attribute(name))
         {
             const std::string& value = valueOf(name);
 
@@ -405,21 +399,42 @@ namespace ehb
                 return defaultValue;
             }
 
-            const auto itr1 = value.find(',');
-            const auto itr2 = value.find(',', itr1 + 1);
-            const auto itr3 = value.find(',', itr2 + 1);
+            const std::vector<std::string> values = split(value, ',');
 
-            float x = std::stof(value.substr(0, itr1));
-            float y = std::stof(value.substr(itr1 + 1, itr2 - itr1 - 1));
-            float z = std::stof(value.substr(itr2 + 1, itr3 - itr2 - 1));
-            unsigned int node = std::stoul(value.substr(itr3 + 1), nullptr, 16);
+            if (values.size() != 5)
+            {
+                return defaultValue;
+            }
 
-            return SiegePos(x, y, z, node);
+            return SiegeRot{ { std::stof(values[0]), std::stof(values[1]), std::stof(values[2]), std::stof(values[3]) }, std::stoul(values[4], nullptr, 16) };
         }
 
         return defaultValue;
     }
-#endif
+
+    SiegePos FuelBlock::valueAsSiegePos(const std::string & name, const SiegePos & defaultValue) const
+    {
+        if (const Attribute* attr = attribute(name))
+        {
+            const std::string& value = valueOf(name);
+
+            if (value.empty())
+            {
+                return defaultValue;
+            }
+
+            const std::vector<std::string> values = split(value, ',');
+
+            if (values.size() != 4)
+            {
+                return defaultValue;
+            }
+
+            return SiegePos{ { std::stof(values[0]), std::stof(values[1]), std::stof(values[2]) }, std::stoul(values[3], nullptr, 16) };
+        }
+
+        return defaultValue;
+    }
 
     FuelBlock* FuelBlock::clone(FuelBlock* parent) const
     {

@@ -26,11 +26,24 @@
 #include <vector>
 #include <vsg/maths/vec3.h>
 #include <vsg/maths/vec4.h>
+#include <vsg/maths/quat.h>
 //#include "SiegeRot.hpp"
 //#include "SiegePos.hpp"
 
 namespace ehb
 {
+    struct SiegePos
+    {
+        vsg::vec3 pos;
+        uint32_t guid;
+    };
+
+    struct SiegeRot
+    {
+        vsg::quat rot;
+        uint32_t guid;
+    };
+
     // private
     struct Attribute
     {
@@ -108,10 +121,11 @@ namespace ehb
 
         // extra types...
         std::array<float, 3> valueAsFloat3(const std::string& name, const std::array<float, 3> defaultValue = {1.0, 1.0, 1.0}) const;
+        std::array<float, 4> valueAsFloat4(const std::string& name, const std::array<float, 4> defaultValue = { 1.0, 1.0, 1.0, 1.0 }) const;
         vsg::vec3 valueAsVec3(const std::string& name, const vsg::vec3& defaultValue = {1.0, 1.0, 1.0}) const; // don't use 1.f as vsg::vec3 could be doubles
         vsg::vec4 valueAsColor(const std::string& name, const vsg::vec4& defaultValue = {1.f, 1.f, 1.f, 1.f}) const;
-        //SiegeRot valueAsSiegeRot(const std::string & name, const SiegeRot & defaultValue = { 0.0, 0.0, 0.0, 0.0, 0}) const;
-        //SiegePos valueAsSiegePos(const std::string & name, const SiegePos & defaultValue = { 0.0, 0.0, 0.0, 0 }) const;
+        SiegeRot valueAsSiegeRot(const std::string& name, const SiegeRot& defaultValue = { {0.0, 0.0, 0.0, 0.0}, 0 }) const;
+        SiegePos valueAsSiegePos(const std::string& name, const SiegePos& defaultValue = { {0.0, 0.0, 0.0}, 0 }) const;
 
         //! create a deep copy of the node that must be deleted by the user
         FuelBlock* clone(FuelBlock* parent = nullptr) const;
