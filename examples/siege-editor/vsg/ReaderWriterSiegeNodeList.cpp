@@ -56,8 +56,6 @@ namespace ehb
         // there are way to many of these containers -.-
         std::set<vsg::ref_ptr<SiegeNodeMesh>> uniqueMeshes;
 
-        // std::unordered_map<vsg::ref_ptr<vsg::Group>, std::vector<InstanceData>> instanceData;
-
         if (Fuel doc; doc.load(stream))
         {
             auto group = vsg::Group::create();
@@ -111,7 +109,9 @@ namespace ehb
 #if 0
                         xform->setValue("bounds_camera", node->valueAsBool("bounds_camera"));
                         xform->setValue("camera_fade", node->valueAsBool("camera_fade"));
+#endif
                         xform->setValue<uint32_t>("guid", node->valueAsUInt("guid"));
+#if 0
                         xform->setValue<uint32_t>("nodelevel", node->valueAsUInt("nodelevel"));
                         xform->setValue<uint32_t>("nodeobject", node->valueAsUInt("nodeobject"));
                         xform->setValue<uint32_t>("nodesection", node->valueAsUInt("nodesection"));

@@ -2,6 +2,7 @@
 #include "ReaderWriterRegion.hpp"
 #include "io/IFileSys.hpp"
 #include "vsg/ReaderWriterSNO.hpp"
+#include "vsg/Aspect.hpp"
 
 // i'm lazy
 #include "vsg/all.h"
@@ -30,9 +31,13 @@ namespace ehb
         auto path = vsg::removeExtension(filename);
         auto maindotgas = path + "/main.gas";
         auto nodesdotgas = path + "/terrain_nodes/nodes.gas";
+        auto noninteractivedotgas = path + "/objects/regular/non_interactive.gas";
+        auto actordotgas = path + "/objects/actor.gas";
 
         InputStream main = fileSys.createInputStream(maindotgas);
         InputStream nodes = fileSys.createInputStream(nodesdotgas);
+        InputStream noninteractive = fileSys.createInputStream(noninteractivedotgas);
+        InputStream actor = fileSys.createInputStream(actordotgas);
 
         if (main == nullptr || nodes == nullptr)
         {
@@ -41,11 +46,46 @@ namespace ehb
             return {};
         }
 
-        if (auto region = read(*main, options).cast<vsg::MatrixTransform>())
+        if (auto region = read_cast<Region>(*main, options))
         {
-            if (auto nodeData = vsg::read(nodesdotgas, options).cast<vsg::Group>())
+            if (auto nodeData = vsg::read_cast<vsg::Group>(nodesdotgas, options))
             {
-                region->addChild(nodeData);
+                region->setNodeData(nodeData);
+
+                { // load up actors as a test
+
+                    if (actor != nullptr)
+                    {
+                        if (Fuel doc; doc.load(*actor))
+                        {
+                            spdlog::get("log")->info("loading {}", actordotgas);
+
+                            for (const auto& node : doc.eachChild())
+                            {
+                                if (auto asp = vsg::read_cast<Aspect>("m_i_glb_object-waypoint", options))
+                                {
+                                    auto t = vsg::MatrixTransform::create();
+                                    t->addChild(asp);
+
+                                    // GameObject::onXfer(const FuelBlock& root)
+                                    if (auto p = node->child("placement"))
+                                    {
+                                        auto pos = p->valueAsSiegePos("position");
+                                        auto rot = p->valueAsSiegePos("rotation");
+
+                                        t->matrix = vsg::translate(pos.pos);
+                                    }
+
+                                    region->addChild(t);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        spdlog::get("log")->warn("{} is unavailable for this map", actordotgas);
+                    }
+                }
 
                 return region;
             }
@@ -58,11 +98,11 @@ namespace ehb
     {
         if (Fuel doc; doc.load(stream))
         {
-            auto transform = vsg::MatrixTransform::create();
+            auto region = Region::create();
 
-            transform->setValue("guid", doc.valueAsUInt("region:guid"));
+            region->setValue("guid", doc.valueAsUInt("region:guid"));
 
-            return transform;
+            return region;
         }
         else
         {
