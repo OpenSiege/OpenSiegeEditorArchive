@@ -36,11 +36,8 @@ namespace ehb
         {
             // ReaderWriterSiegeNodeList
             // this should be guaranteed - if this even crashes then something went wrong with the setup of the nodes
-            //
             if (auto sno = t.children[0].cast<SiegeNodeMesh>())
             {
-                spdlog::get("log")->info("siege node transform");
-
                 uint32_t guid; t.getValue("guid", guid);
                 map.emplace(guid, &t);
             }
