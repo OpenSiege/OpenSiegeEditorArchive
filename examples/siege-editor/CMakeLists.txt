@@ -49,6 +49,8 @@ set(SOURCES
     world/SiegeNode.cpp
     world/Region.cpp
     
+    game/ContentDb.cpp
+    
     MainWindow.cpp
     SiegePipeline.cpp
     LoadMapDialog.cpp
@@ -75,6 +77,8 @@ add_target_clang_format(
         ${CMAKE_CURRENT_SOURCE_DIR}/vsg/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/world/*.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/world/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/game/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/game/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
 )

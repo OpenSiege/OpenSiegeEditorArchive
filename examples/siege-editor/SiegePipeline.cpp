@@ -122,6 +122,7 @@ void main() {
     {
         fileSys.init(config);
         fileNameMap.init(fileSys);
+        contentDb.init(fileSys);
 
         nodeMeshGuidDb = SiegeNodeMeshGUIDDatabase::create(fileSys);
         options->setObject("SiegeNodeMeshGuidDatabase", nodeMeshGuidDb);

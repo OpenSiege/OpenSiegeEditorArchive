@@ -14,6 +14,8 @@
 #include "io/FileNameMap.hpp"
 #include "io/LocalFileSys.hpp"
 
+#include "game/ContentDb.hpp"
+
 namespace ehb
 {
     extern const std::string vertexPushConstantsSource;
@@ -22,6 +24,7 @@ namespace ehb
     class WritableConfig;
     class IFileSys;
     class FileNameMap;
+    class ContentDb;
 
     class SiegeNodePipeline
     {
@@ -59,6 +62,7 @@ namespace ehb
         WritableConfig& config;
         LocalFileSys fileSys; // temp
         FileNameMap fileNameMap;
+        ContentDb contentDb;
 
         vsg::ref_ptr<SiegeNodeMeshGUIDDatabase> nodeMeshGuidDb;
 
