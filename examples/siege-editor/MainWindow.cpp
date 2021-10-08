@@ -9,6 +9,7 @@
 #include "SiegePipeline.hpp"
 #include "cfg/WritableConfig.hpp"
 #include "world/SiegeNode.hpp"
+#include "IntersectionHandler.hpp"
 
 // work-around for weird VK_NO_PROTOTYPES issue with Qt
 #include <vsg/viewer/Viewer.h>
@@ -57,107 +58,7 @@ namespace ehb
         }
     };
 
-    class IntersectionHandler : public vsg::Inherit<vsg::Visitor, IntersectionHandler>
-    {
-    public:
-        vsg::ref_ptr<vsg::Builder> builder;
-        vsg::ref_ptr<vsg::Options> options;
-        vsg::ref_ptr<vsg::Camera> camera;
-        vsg::ref_ptr<vsg::Group> scenegraph;
-        vsg::ref_ptr<DynamicLoadAndCompile> loadandcompile;
-        bool verbose = true;
 
-        std::shared_ptr<spdlog::logger> log;
-
-        IntersectionHandler(vsg::ref_ptr<vsg::Camera> in_camera, vsg::ref_ptr<vsg::Group> in_scenegraph, vsg::ref_ptr<vsg::Options> in_options, vsg::ref_ptr<DynamicLoadAndCompile> lac) :
-            options(in_options),
-            camera(in_camera),
-            scenegraph(in_scenegraph),
-            loadandcompile(lac)
-        {
-
-            log = spdlog::get("log");
-        }
-
-        void apply(vsg::KeyPressEvent& keyPress) override
-        {
-        }
-
-        void apply(vsg::ButtonPressEvent& buttonPressEvent) override
-        {
-            lastPointerEvent = &buttonPressEvent;
-
-            if (buttonPressEvent.button == 1)
-            {
-                interesection(buttonPressEvent);
-            }
-        }
-
-        void apply(vsg::PointerEvent& pointerEvent) override
-        {
-            lastPointerEvent = &pointerEvent;
-        }
-
-        void interesection(vsg::PointerEvent& pointerEvent)
-        {
-            auto intersector = vsg::LineSegmentIntersector::create(*camera, pointerEvent.x, pointerEvent.y);
-            scenegraph->accept(*intersector);
-
-            if (verbose) log->info("intersection(({}, {}), {})", pointerEvent.x, pointerEvent.y, intersector->intersections.size());
-
-            if (intersector->intersections.empty()) return;
-
-            // sort the intersectors front to back
-            std::sort(intersector->intersections.begin(), intersector->intersections.end(), [](auto lhs, auto rhs) { return lhs.ratio < rhs.ratio; });
-
-            std::stringstream verboseOutput;
-
-            for (auto& intersection : intersector->intersections)
-            {
-                if (verbose) verboseOutput << "intersection = " << intersection.worldIntersection << " ";
-
-                if (lastIntersection)
-                {
-                    if (verbose) verboseOutput << ", distance from previous intersection = " << vsg::length(intersection.worldIntersection - lastIntersection.worldIntersection);
-                }
-
-                if (verbose)
-                {
-                    for (auto& node : intersection.nodePath)
-                    {
-                        verboseOutput << ", " << node->className();
-                    }
-
-                    verboseOutput << ", Arrays[ ";
-                    for (auto& array : intersection.arrays)
-                    {
-                        verboseOutput << array << " ";
-                    }
-                    verboseOutput << "] [";
-                    for (auto& ir : intersection.indexRatios)
-                    {
-                        verboseOutput << "{" << ir.index << ", " << ir.ratio << "} ";
-                    }
-                    verboseOutput << "]";
-
-                    verboseOutput << std::endl;
-
-                    // spdlog::get("log")->info("{}", verboseOutput.str());
-                }
-            }
-
-            lastIntersection = intersector->intersections.front();
-
-            auto t1 = vsg::MatrixTransform::create();
-            t1->matrix = vsg::translate(lastIntersection.worldIntersection);
-            loadandcompile->loadRequest("m_c_gah_fg_pos_a1", t1, options);
-            scenegraph->addChild(t1);
-        }
-
-    protected:
-        vsg::ref_ptr<vsg::PointerEvent> lastPointerEvent;
-        vsg::LineSegmentIntersector::Intersection lastIntersection;
-    };
 
 } // namespace ehb
 
@@ -262,7 +163,7 @@ namespace ehb
 
             dynamic_load_and_compile = DynamicLoadAndCompile::create(window, viewportState, viewer->status);
 
-            viewer->addEventHandler(IntersectionHandler::create(camera, vsg_sno, systems.options, dynamic_load_and_compile));
+            //viewer->addEventHandler(IntersectionHandler::create(camera, vsg_sno, systems.options, dynamic_load_and_compile));
 
             // add trackball to enable mouse driven camera view control.
             viewer->addEventHandler(vsg::Trackball::create(camera));
