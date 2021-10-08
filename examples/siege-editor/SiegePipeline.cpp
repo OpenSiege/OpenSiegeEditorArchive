@@ -295,7 +295,7 @@ void main() {
             auto maxSets = collectStats.computeNumDescriptorSets();
             auto descriptorPoolSizes = collectStats.computeDescriptorPoolSizes();
 
-            // brute force allocation of new DescrptorPool for this subgraph, TODO : need to preallocate large DescritorPoil for multiple loaded subgraphs
+            // brute force allocation of new DescrptorPool for this subgraph, TODO : need to preallocate large DescriptorPool for multiple loaded subgraphs
             if (descriptorPoolSizes.size() > 0) compileTraversal->context.descriptorPool = vsg::DescriptorPool::create(compileTraversal->context.device, maxSets, descriptorPoolSizes);
 
             request->loaded->accept(*compileTraversal);
