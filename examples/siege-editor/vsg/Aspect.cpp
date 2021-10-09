@@ -52,11 +52,11 @@ namespace ehb
                 auto abIpos = d->rposInfoAbI[0].position;
                 auto abIrot = d->rposInfoAbI[0].rotation;
 
-                auto rootrel = vsg::rotate(relrot) * vsg::translate(relpos);
-                auto rootabI = vsg::rotate(abIrot) * vsg::translate(abIpos);
+                //auto rootrel = vsg::rotate(relrot) * vsg::translate(relpos);
+                //auto rootabI = vsg::rotate(abIrot) * vsg::translate(abIpos);
 
-                //auto rootrel = vsg::translate(relpos) * vsg::rotate(relrot);
-                //auto rootabI = vsg::translate(abIpos) * vsg::rotate(abIrot);
+                auto rootrel = vsg::translate(relpos) * vsg::rotate(relrot);
+                auto rootabI = vsg::translate(abIpos) * vsg::rotate(abIrot);
 
                 for (uint32_t cornerCounter = 0; cornerCounter < mesh.cornerCount; ++cornerCounter)
                 {
