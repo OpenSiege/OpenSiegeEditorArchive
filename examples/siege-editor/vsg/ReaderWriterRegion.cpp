@@ -7,12 +7,12 @@
 #include "vsg/Aspect.hpp"
 #include "world/Region.hpp"
 #include "world/SiegeNode.hpp"
-#include "game/ObjectDb.hpp"
+#include "game/ContentDb.hpp"
 
 namespace ehb
 {
-    ReaderWriterRegion::ReaderWriterRegion(IFileSys& fileSys, FileNameMap& fileNameMap, ObjectDb& objectDb) :
-        fileSys(fileSys), fileNameMap(fileNameMap), objectDb(objectDb)
+    ReaderWriterRegion::ReaderWriterRegion(IFileSys& fileSys, FileNameMap& fileNameMap, ContentDb& objectDb) :
+        fileSys(fileSys), fileNameMap(fileNameMap), contentDb(objectDb)
     {
         log = spdlog::get("log");
         //log->set_level(spdlog::level::debug);
@@ -49,7 +49,8 @@ namespace ehb
             log->info("this map does not have difficulties so adjusting path to {}", objectspath);
         }
 
-        auto objectFiles = {"actor.gas", "command.gas", "container.gas", "elevator.gas", "emitter.gas", "generator.gas", "interactive.gas", "inventory.gas", "non_interactive.gas", "special.gas", "test.gas", "trap.gas"};
+        //auto objectFiles = {"actor.gas", "command.gas", "container.gas", "elevator.gas", "emitter.gas", "generator.gas", "interactive.gas", "inventory.gas", "non_interactive.gas", "special.gas", "test.gas", "trap.gas"};
+        auto objectFiles = { "actor.gas", "container.gas", "non_interactive.gas" };
 
         auto noninteractivedotgas = objectspath + "/non_interactive.gas";
         auto actordotgas = objectspath + "/actor.gas";
@@ -83,18 +84,29 @@ namespace ehb
 
                             for (const auto& node : doc->eachChild())
                             {
-                                objectDb.cloneGameObject("farmgirl");
-
-                                if (auto asp = vsg::read_cast<Aspect>("m_i_glb_object-waypoint", options))
+                                if (auto go = contentDb.getGameObjectTmpl(node->type()))
                                 {
+                                    // at minimum we require a transform
                                     auto t = vsg::MatrixTransform::create();
-                                    t->addChild(asp);
+
+                                    // aspect is our visual
+                                    if (const auto& aspect = go->child("aspect"))
+                                    {
+                                        if (auto model = vsg::read_cast<Aspect>(aspect->valueOf("model", "m_i_glb_placeholder"), options))
+                                        {
+                                            t->addChild(model);
+                                        }
+                                        else
+                                        {
+                                            spdlog::get("log")->error("unable to load {} for our model against {}", aspect->valueOf("model", ""), node->type());
+                                        }
+                                    }
 
                                     // GameObject::onXfer(const FuelBlock& root)
                                     if (auto p = node->child("placement"))
                                     {
                                         auto pos = p->valueAsSiegePos("position");
-                                        auto rot = p->valueAsSiegePos("rotation");
+                                        auto rot = p->valueAsSiegeRot("orientation");
 
                                         t->setValue("position", pos);
                                         t->setValue("rotation", rot);

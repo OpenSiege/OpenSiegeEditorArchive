@@ -133,7 +133,7 @@ void main() {
             ReaderWriterRAW::create(fileSys, fileNameMap),
             ReaderWriterSNO::create(fileSys, fileNameMap),
             ReaderWriterSiegeNodeList::create(fileSys, fileNameMap),
-            ReaderWriterRegion::create(fileSys, fileNameMap, *objectDb),
+            ReaderWriterRegion::create(fileSys, fileNameMap, contentDb),
             ReaderWriterASP::create(fileSys, fileNameMap)
 
         };

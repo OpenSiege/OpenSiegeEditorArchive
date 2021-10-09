@@ -401,12 +401,12 @@ namespace ehb
 
             const std::vector<std::string> values = split(value, ',');
 
-            if (values.size() != 5)
+            if (values.size() != 4)
             {
                 return defaultValue;
             }
 
-            return SiegeRot{{std::stof(values[0]), std::stof(values[1]), std::stof(values[2]), std::stof(values[3])}, std::stoul(values[4], nullptr, 16)};
+            return SiegeRot{{std::stof(values[0]), std::stof(values[1]), std::stof(values[2]), std::stof(values[3])}};
         }
 
         return defaultValue;

@@ -41,7 +41,6 @@ namespace ehb
     struct SiegeRot
     {
         vsg::quat rot;
-        uint32_t guid;
     };
 
     // private
@@ -124,7 +123,7 @@ namespace ehb
         std::array<float, 4> valueAsFloat4(const std::string& name, const std::array<float, 4> defaultValue = {1.0, 1.0, 1.0, 1.0}) const;
         vsg::vec3 valueAsVec3(const std::string& name, const vsg::vec3& defaultValue = {1.0, 1.0, 1.0}) const; // don't use 1.f as vsg::vec3 could be doubles
         vsg::vec4 valueAsColor(const std::string& name, const vsg::vec4& defaultValue = {1.f, 1.f, 1.f, 1.f}) const;
-        SiegeRot valueAsSiegeRot(const std::string& name, const SiegeRot& defaultValue = {{0.0, 0.0, 0.0, 0.0}, 0}) const;
+        SiegeRot valueAsSiegeRot(const std::string& name, const SiegeRot& defaultValue = { {0.0, 0.0, 0.0, 0.0} }) const;
         SiegePos valueAsSiegePos(const std::string& name, const SiegePos& defaultValue = {{0.0, 0.0, 0.0}, 0}) const;
 
         //! create a deep copy of the node that must be deleted by the user

@@ -63,19 +63,35 @@ namespace ehb
         void apply(vsg::MatrixTransform& t)
         {
             // ReaderWriterSiegeNodeList
-            // this should be guaranteed - if this even crashes then something went wrong with the setup of the nodes
-            if (auto aspect = t.children[0].cast<Aspect>())
+            // there should only be one child under the transform
+            if (t.children.size() != 0)
             {
-                // local rotation of the object
-                SiegePos pos;
-                t.getValue("position", pos);
-                SiegeRot rot;
-                t.getValue("rotation", rot);
+                if (auto aspect = t.children[0].cast<Aspect>())
+                {
+                    // local rotation of the object
+                    SiegePos pos;
+                    t.getValue("position", pos);
+                    SiegeRot rot;
+                    t.getValue("rotation", rot);
 
-                // global rotation of the node this is applied to
-                auto gt = map[pos.guid];
+                    // global rotation of the node this is applied to
+                    auto gt = map[pos.guid];
 
-                t.matrix = gt->matrix * vsg::dmat4(vsg::translate(pos.pos));
+                    //t.matrix = vsg::dmat4(vsg::inverse(vsg::rotate(rot.rot)));
+                    t.matrix = vsg::dmat4(vsg::translate(pos.pos)) * gt->matrix;
+                    t.matrix = t.matrix * vsg::dmat4(vsg::rotate(rot.rot));
+                    //t.matrix = vsg::dmat4(vsg::translate(-pos.pos)) * t.matrix * gt->matrix;
+                    
+
+                    //auto rotation = vsg::rotate(rot.rot);
+
+                    //t.matrix = vsg::rotate(rot.rot);
+                    //t.matrix = vsg::rotate(vsg::dquat(0, 1, 0, 1));
+                    //t.matrix = vsg::dmat4(vsg::mat4_cast(rot.rot)) * t.matrix;
+                    //t.matrix = vsg::dmat4(vsg::translate(pos.pos)) * gt->matrix;
+
+                    int foo = 55;
+                }
             }
 
             t.traverse(*this);

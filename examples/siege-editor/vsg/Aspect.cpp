@@ -46,12 +46,22 @@ namespace ehb
                 // this has to match the incoming pipe which was defined by the siege nodes
                 auto attributeArrays = vsg::DataList{vertices, colors, texCoords};
 
+                auto relpos = d->rposInfoRel[0].position;
+                auto relrot = d->rposInfoRel[0].rotation;
+
+                //auto root = vsg::rotate(relrot) * vsg::translate(relpos);
+                auto root = vsg::translate(relpos) * vsg::rotate(relrot);
+
                 for (uint32_t cornerCounter = 0; cornerCounter < mesh.cornerCount; ++cornerCounter)
                 {
                     const auto& c = mesh.corners[cornerCounter];
                     const auto& w = mesh.wCorners[cornerCounter];
 
-                    (*vertices)[cornerCounter] = w.position;
+                    // We need to translate the vertices by the root bone transform for the actual position
+                    vsg::vec3 pos = root * c.position;
+                    //vsg::vec3 pos = c.position * root;
+
+                    (*vertices)[cornerCounter] = c.position;
                     (*texCoords)[cornerCounter] = c.texCoord;
                     (*normals)[cornerCounter] = c.normal;
                     (*colors)[cornerCounter] = vsg::vec3(c.color[0], c.color[1], c.color[2]);
