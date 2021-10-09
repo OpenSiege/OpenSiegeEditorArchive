@@ -49,14 +49,14 @@ namespace ehb
             log->info("this map does not have difficulties so adjusting path to {}", objectspath);
         }
 
-        //auto objectFiles = {"actor.gas", "command.gas", "container.gas", "elevator.gas", "emitter.gas", "generator.gas", "interactive.gas", "inventory.gas", "non_interactive.gas", "special.gas", "test.gas", "trap.gas"};
-        auto objectFiles = { "actor.gas", "container.gas", "non_interactive.gas" };
+        auto objectFiles = {"actor.gas", "command.gas", "container.gas", "elevator.gas", "emitter.gas", "generator.gas", "interactive.gas", "inventory.gas", "non_interactive.gas", "special.gas", "test.gas", "trap.gas"};
+        //auto objectFiles = { "actor.gas", "container.gas", "non_interactive.gas" };
+
 
         auto noninteractivedotgas = objectspath + "/non_interactive.gas";
         auto actordotgas = objectspath + "/actor.gas";
 
         // objects can fall under difficulty folders - this should probably be a folder check or something
-        //if
         InputStream noninteractive = fileSys.createInputStream(noninteractivedotgas);
         InputStream actor = fileSys.createInputStream(actordotgas);
 

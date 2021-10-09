@@ -77,20 +77,8 @@ namespace ehb
                     // global rotation of the node this is applied to
                     auto gt = map[pos.guid];
 
-                    //t.matrix = vsg::dmat4(vsg::inverse(vsg::rotate(rot.rot)));
-                    t.matrix = vsg::dmat4(vsg::translate(pos.pos)) * gt->matrix;
+                    t.matrix = gt->matrix * vsg::dmat4(vsg::translate(pos.pos));
                     t.matrix = t.matrix * vsg::dmat4(vsg::rotate(rot.rot));
-                    //t.matrix = vsg::dmat4(vsg::translate(-pos.pos)) * t.matrix * gt->matrix;
-                    
-
-                    //auto rotation = vsg::rotate(rot.rot);
-
-                    //t.matrix = vsg::rotate(rot.rot);
-                    //t.matrix = vsg::rotate(vsg::dquat(0, 1, 0, 1));
-                    //t.matrix = vsg::dmat4(vsg::mat4_cast(rot.rot)) * t.matrix;
-                    //t.matrix = vsg::dmat4(vsg::translate(pos.pos)) * gt->matrix;
-
-                    int foo = 55;
                 }
             }
 
