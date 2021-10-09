@@ -49,8 +49,14 @@ namespace ehb
                 auto relpos = d->rposInfoRel[0].position;
                 auto relrot = d->rposInfoRel[0].rotation;
 
-                //auto root = vsg::rotate(relrot) * vsg::translate(relpos);
-                auto root = vsg::translate(relpos) * vsg::rotate(relrot);
+                auto abIpos = d->rposInfoAbI[0].position;
+                auto abIrot = d->rposInfoAbI[0].rotation;
+
+                auto rootrel = vsg::rotate(relrot) * vsg::translate(relpos);
+                auto rootabI = vsg::rotate(abIrot) * vsg::translate(abIpos);
+
+                //auto rootrel = vsg::translate(relpos) * vsg::rotate(relrot);
+                //auto rootabI = vsg::translate(abIpos) * vsg::rotate(abIrot);
 
                 for (uint32_t cornerCounter = 0; cornerCounter < mesh.cornerCount; ++cornerCounter)
                 {
@@ -58,10 +64,14 @@ namespace ehb
                     const auto& w = mesh.wCorners[cornerCounter];
 
                     // We need to translate the vertices by the root bone transform for the actual position
-                    vsg::vec3 pos = root * c.position;
-                    //vsg::vec3 pos = c.position * root;
+                    // this seems wrong but if there is only 1 root bone then calculate just based on that otherwise don't worry about it?
+                    vsg::vec3 pos = c.position;
+                    if (d->boneCount == 1)
+                    {
+                        pos = rootrel * c.position;
+                    }
 
-                    (*vertices)[cornerCounter] = c.position;
+                    (*vertices)[cornerCounter] = pos;
                     (*texCoords)[cornerCounter] = c.texCoord;
                     (*normals)[cornerCounter] = c.normal;
                     (*colors)[cornerCounter] = vsg::vec3(c.color[0], c.color[1], c.color[2]);
