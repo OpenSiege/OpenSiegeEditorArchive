@@ -15,6 +15,7 @@
 #include "io/LocalFileSys.hpp"
 
 #include "game/ContentDb.hpp"
+#include "game/ObjectDb.hpp"
 
 namespace ehb
 {
@@ -63,6 +64,7 @@ namespace ehb
         LocalFileSys fileSys; // temp
         FileNameMap fileNameMap;
         ContentDb contentDb;
+        std::unique_ptr<ObjectDb> objectDb;
 
         vsg::ref_ptr<SiegeNodeMeshGUIDDatabase> nodeMeshGuidDb;
 

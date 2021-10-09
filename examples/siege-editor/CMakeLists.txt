@@ -49,6 +49,7 @@ set(SOURCES
     world/SiegeNode.cpp
     world/Region.cpp
     
+    game/GameObject.cpp
     game/ContentDb.cpp
     game/ObjectDb.cpp
     

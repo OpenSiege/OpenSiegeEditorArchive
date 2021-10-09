@@ -123,6 +123,7 @@ void main() {
         fileSys.init(config);
         fileNameMap.init(fileSys);
         contentDb.init(fileSys);
+        objectDb.reset(new ObjectDb(contentDb));
 
         nodeMeshGuidDb = SiegeNodeMeshGUIDDatabase::create(fileSys);
         options->setObject("SiegeNodeMeshGuidDatabase", nodeMeshGuidDb);
@@ -132,7 +133,7 @@ void main() {
             ReaderWriterRAW::create(fileSys, fileNameMap),
             ReaderWriterSNO::create(fileSys, fileNameMap),
             ReaderWriterSiegeNodeList::create(fileSys, fileNameMap),
-            ReaderWriterRegion::create(fileSys, fileNameMap),
+            ReaderWriterRegion::create(fileSys, fileNameMap, *objectDb),
             ReaderWriterASP::create(fileSys, fileNameMap)
 
         };

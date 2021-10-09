@@ -7,11 +7,12 @@
 #include "vsg/Aspect.hpp"
 #include "world/Region.hpp"
 #include "world/SiegeNode.hpp"
+#include "game/ObjectDb.hpp"
 
 namespace ehb
 {
-    ReaderWriterRegion::ReaderWriterRegion(IFileSys& fileSys, FileNameMap& fileNameMap) :
-        fileSys(fileSys), fileNameMap(fileNameMap)
+    ReaderWriterRegion::ReaderWriterRegion(IFileSys& fileSys, FileNameMap& fileNameMap, ObjectDb& objectDb) :
+        fileSys(fileSys), fileNameMap(fileNameMap), objectDb(objectDb)
     {
         log = spdlog::get("log");
         //log->set_level(spdlog::level::debug);
@@ -82,6 +83,8 @@ namespace ehb
 
                             for (const auto& node : doc->eachChild())
                             {
+                                objectDb.cloneGameObject("farmgirl");
+
                                 if (auto asp = vsg::read_cast<Aspect>("m_i_glb_object-waypoint", options))
                                 {
                                     auto t = vsg::MatrixTransform::create();

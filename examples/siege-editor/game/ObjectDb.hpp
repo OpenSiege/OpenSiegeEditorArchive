@@ -14,9 +14,7 @@ namespace ehb
     {
     public:
 
-        ObjectDb() = default;
-
-        void init(ContentDb& contentDb);
+        ObjectDb(ContentDb& contentDb) : contentDb(contentDb) {}
 
         // not needed for right now
         // void update(double deltaTime);

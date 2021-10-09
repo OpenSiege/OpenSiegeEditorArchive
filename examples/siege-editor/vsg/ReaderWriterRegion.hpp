@@ -15,10 +15,11 @@
 namespace ehb
 {
     class IFileSys;
+    class ObjectDb;
     class ReaderWriterRegion : public vsg::Inherit<vsg::ReaderWriter, ReaderWriterRegion>
     {
     public:
-        ReaderWriterRegion(IFileSys& fileSys, FileNameMap& fileNameMap);
+        ReaderWriterRegion(IFileSys& fileSys, FileNameMap& fileNameMap, ObjectDb& objectDb);
 
         virtual vsg::ref_ptr<vsg::Object> read(const vsg::Path& filename, vsg::ref_ptr<const vsg::Options> = {}) const override;
         virtual vsg::ref_ptr<vsg::Object> read(std::istream& stream, vsg::ref_ptr<const vsg::Options> = {}) const override;
@@ -28,6 +29,8 @@ namespace ehb
 
         // since vsg doesn't have find file callbacks we will this to resolve our filenames
         FileNameMap& fileNameMap;
+
+        ObjectDb& objectDb;
 
         std::shared_ptr<spdlog::logger> log;
     };
